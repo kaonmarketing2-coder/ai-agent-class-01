@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>교육 그룹 배정 시스템</title>
+  <style>
+    body { margin: 0; font-family: 'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif;
+      background: #0F172A; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+    .wrap { width: 100%; max-width: 480px; }
+    h1 { color: #F1F5F9; font-size: 24px; margin: 0 0 8px; }
+    p.sub { color: #94A3B8; font-size: 14px; margin: 0 0 28px; line-height: 1.6; }
+    a.card { display: block; text-decoration: none; background: #1E293B; border: 1px solid #334155;
+      border-radius: 14px; padding: 20px 24px; margin-bottom: 14px; transition: all 0.2s; }
+    a.card:hover { background: #273449; border-color: #475569; transform: translateY(-2px); }
+    .card .t { color: #F1F5F9; font-size: 17px; font-weight: 700; margin-bottom: 4px; }
+    .card .d { color: #64748B; font-size: 13px; }
+    .icon { font-size: 22px; margin-right: 8px; }
+    .foot { color: #475569; font-size: 12px; text-align: center; margin-top: 24px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>📚 교육 그룹 배정 시스템</h1>
+    <p class="sub">RM본부 Group 1·2 교육 참석 배정 · Supabase 연동</p>
+
+    <a class="card" href="attendance.html">
+      <div class="t"><span class="icon">📝</span>참석 배정 제출 폼</div>
+      <div class="d">부서별 인원을 Group 1 / Group 2로 나누어 제출합니다.</div>
+    </a>
+
+    <a class="card" href="dashboard.html">
+      <div class="t"><span class="icon">📊</span>관리자 대시보드</div>
+      <div class="d">제출 현황·명단·이력 조회 (비밀번호 필요)</div>
+    </a>
+
+    <div class="foot">데이터: Supabase · kaon-mentoring</div>
+  </div>
+</body>
+</html>
