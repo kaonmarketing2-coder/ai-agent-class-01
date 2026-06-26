@@ -2,7 +2,7 @@ const { useState, useEffect, useCallback } = React;
 const SUPABASE_URL = "https://mrdmywosqzaqukdfvbzv.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1yZG15d29zcXphcXVrZGZ2Ynp2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5NzIzNTksImV4cCI6MjA4OTU0ODM1OX0.D2PKVx9cqyAg-qIpKdtUX9z9AwdjDwNgo6Nsyy4vdNM";
 const DASHBOARD_PASSWORD = "kaon2025";
-const GOOGLE_CLIENT_ID = "YOUR_CLIENT_ID.apps.googleusercontent.com";
+const GOOGLE_CLIENT_ID = "770804220578-liqpktplntk748tha451cddek97uc3m4.apps.googleusercontent.com";
 
 const HEADERS = { "apikey":SUPABASE_KEY, "Authorization":`Bearer ${SUPABASE_KEY}` };
 
@@ -117,7 +117,7 @@ function SetupModal({onClose}) {
           <li><a href="https://console.cloud.google.com/" target="_blank" rel="noreferrer" style={{color:"#2563EB"}}>Google Cloud Console</a> 접속</li>
           <li>새 프로젝트 생성 → <strong>Google Sheets API</strong> 활성화</li>
           <li>사용자 인증 정보 → OAuth 2.0 클라이언트 ID 생성 (웹 애플리케이션)</li>
-          <li>승인된 JS 원본에 <code style={{background:"#F1F5F9",padding:"1px 6px",borderRadius:4}}>https://claude.ai</code> 추가</li>
+          <li>승인된 JS 원본에 <code style={{background:"#F1F5F9",padding:"1px 6px",borderRadius:4}}>https://kaonmarketing2-coder.github.io</code> 추가</li>
           <li>클라이언트 ID를 파일 상단 <code style={{background:"#F1F5F9",padding:"1px 6px",borderRadius:4}}>GOOGLE_CLIENT_ID</code>에 입력</li>
         </ol>
         <button onClick={onClose} style={{width:"100%",padding:"11px",background:"#0F172A",color:"#fff",border:"none",borderRadius:10,fontSize:14,fontWeight:700,cursor:"pointer"}}>확인</button>
