@@ -1,0 +1,14 @@
+{
+  "name": "ai-agent-class-01",
+  "private": true,
+  "description": "교육 그룹 배정 시스템 — self-contained HTML pages built from src/*.jsx",
+  "scripts": {
+    "build": "node build.cjs"
+  },
+  "devDependencies": {
+    "@babel/core": "^7",
+    "@babel/preset-react": "^7",
+    "react": "^18",
+    "react-dom": "^18"
+  }
+}

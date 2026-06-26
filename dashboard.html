@@ -357,6 +357,62 @@ const G2 = {
   tag: "#EDE9FE",
   tagText: "#5B21B6"
 };
+
+// ── 비고: 이름/사유 구조 ──────────────────────────────
+// JSON 문자열로 저장됨. 기존 plain text도 역호환 파싱.
+function parseNote(note) {
+  if (!note) return [];
+  try {
+    const parsed = JSON.parse(note);
+    if (Array.isArray(parsed)) {
+      return parsed.map(it => ({
+        name: (it && it.name || "").trim(),
+        reason: (it && it.reason || "").trim()
+      })).filter(it => it.name || it.reason);
+    }
+  } catch (e) {/* 기존 plain text */}
+  return [{
+    name: "",
+    reason: String(note).trim()
+  }];
+}
+
+// CSV/텍스트용: "이름: 사유" 형식, 여러 항목은 " / "로 연결
+function noteToText(note) {
+  return parseNote(note).map(it => it.name && it.reason ? `${it.name}: ${it.reason}` : it.name || it.reason).join(" / ");
+}
+
+// 화면 표시용: 이름/사유 분리 렌더
+function NoteDisplay({
+  note
+}) {
+  const items = parseNote(note);
+  if (!items.length) return null;
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: "#F8FAFC",
+      borderRadius: 6,
+      padding: "6px 10px",
+      marginBottom: 8
+    }
+  }, items.map((it, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      fontSize: 12,
+      color: "#64748B",
+      lineHeight: 1.7
+    }
+  }, "\uD83D\uDCDD ", it.name && /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontWeight: 700,
+      color: "#475569"
+    }
+  }, it.name), it.name && it.reason && /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: "#94A3B8"
+    }
+  }, " \xB7 "), it.reason)));
+}
 async function fetchSubmissions() {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/training_submissions?select=*&order=submitted_at.desc`, {
     headers: HEADERS
@@ -381,7 +437,7 @@ function exportCSV(rows) {
     const dept = DEPARTMENTS.find(d => d.id === r.department_id);
     const diff = dept ? total - dept.total : 0;
     const statusText = diff === 0 ? "일치" : diff > 0 ? `${diff}명 초과` : `${Math.abs(diff)}명 부족`;
-    return [`"${r.department_name}"`, `"${r.submitter}"`, r.g1_count, `"${(r.g1_names || "").replace(/\n/g, " / ")}"`, r.g2_count, `"${(r.g2_names || "").replace(/\n/g, " / ")}"`, `"${r.note || ""}"`, `"${statusText}"`, `"${new Date(r.submitted_at).toLocaleString("ko-KR")}"`].join(",");
+    return [`"${r.department_name}"`, `"${r.submitter}"`, r.g1_count, `"${(r.g1_names || "").replace(/\n/g, " / ")}"`, r.g2_count, `"${(r.g2_names || "").replace(/\n/g, " / ")}"`, `"${noteToText(r.note)}"`, `"${statusText}"`, `"${new Date(r.submitted_at).toLocaleString("ko-KR")}"`].join(",");
   })];
   const blob = new Blob(["﻿" + lines.join("\n")], {
     type: "text/csv;charset=utf-8;"
@@ -921,16 +977,9 @@ function Dashboard({
       style: {
         fontSize: 12
       }
-    }, "\uBA85"))))), latest.note && /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: 12,
-        color: "#64748B",
-        padding: "6px 10px",
-        background: "#F8FAFC",
-        borderRadius: 6,
-        marginBottom: 8
-      }
-    }, "\uD83D\uDCDD ", latest.note), /*#__PURE__*/React.createElement("div", {
+    }, "\uBA85"))))), /*#__PURE__*/React.createElement(NoteDisplay, {
+      note: latest.note
+    }), /*#__PURE__*/React.createElement("div", {
       style: {
         display: "flex",
         justifyContent: "space-between",
@@ -1212,16 +1261,20 @@ function Dashboard({
       style: {
         color: "#CBD5E1"
       }
-    }, "\uBBF8\uBC30\uC815"))))), /*#__PURE__*/React.createElement("div", {
+    }, "\uBBF8\uBC30\uC815"))))), parseNote(row.note).length > 0 && /*#__PURE__*/React.createElement("div", {
+      style: {
+        padding: "0 16px 4px"
+      }
+    }, /*#__PURE__*/React.createElement(NoteDisplay, {
+      note: row.note
+    })), /*#__PURE__*/React.createElement("div", {
       style: {
         padding: "8px 16px",
         borderTop: "1px solid #E2E8F0",
         fontSize: 11,
-        color: "#94A3B8",
-        display: "flex",
-        justifyContent: "space-between"
+        color: "#94A3B8"
       }
-    }, /*#__PURE__*/React.createElement("span", null, "\uC81C\uCD9C\uC790: ", row.submitter), row.note && /*#__PURE__*/React.createElement("span", null, "\uD83D\uDCDD ", row.note)));
+    }, /*#__PURE__*/React.createElement("span", null, "\uC81C\uCD9C\uC790: ", row.submitter)));
   })), /*#__PURE__*/React.createElement("div", {
     style: {
       textAlign: "center",

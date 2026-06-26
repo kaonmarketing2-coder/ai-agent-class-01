@@ -354,6 +354,32 @@ const G2 = {
   tagText: "#5B21B6"
 };
 
+// ── 비고: 이름/사유 구조 ──────────────────────────────
+// 저장은 JSON 문자열로, 기존 plain text도 역호환 파싱
+function parseNote(note) {
+  if (!note) return [];
+  try {
+    const parsed = JSON.parse(note);
+    if (Array.isArray(parsed)) {
+      return parsed.map(it => ({
+        name: (it && it.name || "").trim(),
+        reason: (it && it.reason || "").trim()
+      })).filter(it => it.name || it.reason);
+    }
+  } catch (e) {/* 기존 plain text */}
+  return [{
+    name: "",
+    reason: String(note).trim()
+  }];
+}
+function serializeNote(items) {
+  const clean = (items || []).map(it => ({
+    name: (it.name || "").trim(),
+    reason: (it.reason || "").trim()
+  })).filter(it => it.name || it.reason);
+  return clean.length ? JSON.stringify(clean) : "";
+}
+
 // 항상 새 레코드 INSERT (중복 허용, 모두 기록)
 async function insertSubmission(dept, data) {
   const g1Names = data.g1Names.split("\n").filter(n => n.trim());
@@ -366,7 +392,7 @@ async function insertSubmission(dept, data) {
     g1_count: g1Names.length,
     g2_names: data.g2Names,
     g2_count: g2Names.length,
-    note: data.note,
+    note: serializeNote(data.noteItems),
     submitted_at: new Date().toISOString()
   };
   const res = await fetch(`${SUPABASE_URL}/rest/v1/training_submissions`, {
@@ -427,6 +453,19 @@ function DeptForm({
 
   // 제출 조건: 제출자 이름만 있으면 됨 (인원 일치 불필요)
   const canSubmit = data.submitter.trim().length > 0;
+
+  // 비고 행 편집 핸들러
+  const noteItems = data.noteItems || [];
+  const setNoteItems = next => onChange("noteItems", next);
+  const onNoteChange = (idx, key, val) => setNoteItems(noteItems.map((it, i) => i === idx ? {
+    ...it,
+    [key]: val
+  } : it));
+  const onNoteAdd = () => setNoteItems([...noteItems, {
+    name: "",
+    reason: ""
+  }]);
+  const onNoteRemove = idx => setNoteItems(noteItems.filter((_, i) => i !== idx));
   const handleSubmit = async () => {
     if (!canSubmit || loading) return;
     setLoading(true);
@@ -588,16 +627,37 @@ function DeptForm({
       color: diff > 0 ? "#DC2626" : "#D97706",
       border: `1px solid ${diff > 0 ? "#FECACA" : "#FDE68A"}`
     }
-  }, "\u26A0\uFE0F \uBC30\uC815 \uC778\uC6D0(", total, "\uBA85)\uC774 \uC804\uCCB4 \uC778\uC6D0(", dept.total, "\uBA85)\uACFC ", diff > 0 ? `${diff}명 초과` : `${Math.abs(diff)}명 부족`, "\uD569\uB2C8\uB2E4."), data.note && /*#__PURE__*/React.createElement("div", {
+  }, "\u26A0\uFE0F \uBC30\uC815 \uC778\uC6D0(", total, "\uBA85)\uC774 \uC804\uCCB4 \uC778\uC6D0(", dept.total, "\uBA85)\uACFC ", diff > 0 ? `${diff}명 초과` : `${Math.abs(diff)}명 부족`, "\uD569\uB2C8\uB2E4."), noteItems.filter(it => (it.name || "").trim() || (it.reason || "").trim()).length > 0 && /*#__PURE__*/React.createElement("div", {
     style: {
-      fontSize: 12,
-      color: "#64748B",
-      padding: "8px 12px",
       background: "#F1F5F9",
       borderRadius: 8,
+      padding: "10px 12px",
       marginBottom: 12
     }
-  }, "\uD83D\uDCDD ", data.note), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      fontWeight: 700,
+      color: "#64748B",
+      marginBottom: 6
+    }
+  }, "\uD83D\uDCDD \uBE44\uACE0"), noteItems.filter(it => (it.name || "").trim() || (it.reason || "").trim()).map((it, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      fontSize: 12,
+      color: "#475569",
+      lineHeight: 1.8
+    }
+  }, it.name && /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontWeight: 700,
+      color: "#334155"
+    }
+  }, it.name), it.name && it.reason && /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: "#94A3B8"
+    }
+  }, " \xB7 "), it.reason))), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 12,
       color: "#94A3B8",
@@ -795,23 +855,92 @@ function DeptForm({
       display: "block",
       marginBottom: 6
     }
-  }, "\uBE44\uACE0"), /*#__PURE__*/React.createElement("input", {
+  }, "\uBE44\uACE0 ", /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontWeight: 400,
+      color: "#94A3B8"
+    }
+  }, "(\uC608\uC678 \uC778\uC6D0\uC758 \uC774\uB984\uACFC \uC0AC\uC720, \uC120\uD0DD)")), noteItems.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "120px 1fr 32px",
+      gap: 8,
+      marginBottom: 6,
+      fontSize: 11,
+      fontWeight: 700,
+      color: "#94A3B8",
+      padding: "0 2px"
+    }
+  }, /*#__PURE__*/React.createElement("span", null, "\uC774\uB984"), /*#__PURE__*/React.createElement("span", null, "\uC0AC\uC720"), /*#__PURE__*/React.createElement("span", null)), noteItems.map((item, idx) => /*#__PURE__*/React.createElement("div", {
+    key: idx,
+    style: {
+      display: "grid",
+      gridTemplateColumns: "120px 1fr 32px",
+      gap: 8,
+      marginBottom: 8,
+      alignItems: "center"
+    }
+  }, /*#__PURE__*/React.createElement("input", {
     type: "text",
-    placeholder: "\uC608\uC678 \uC0AC\uC720 \uB4F1 (\uC120\uD0DD)",
-    value: data.note,
-    onChange: e => onChange("note", e.target.value),
+    placeholder: "\uC774\uB984",
+    value: item.name,
+    onChange: e => onNoteChange(idx, "name", e.target.value),
     style: {
       width: "100%",
       boxSizing: "border-box",
       border: "1.5px solid #E2E8F0",
       borderRadius: 8,
-      padding: "10px 12px",
+      padding: "9px 10px",
       fontSize: 13,
       outline: "none",
       color: "#1E293B",
       fontFamily: "inherit"
     }
-  })), error && /*#__PURE__*/React.createElement("div", {
+  }), /*#__PURE__*/React.createElement("input", {
+    type: "text",
+    placeholder: "\uC0AC\uC720 (\uC608: \uD734\uAC00, \uCD9C\uC7A5 \uB4F1)",
+    value: item.reason,
+    onChange: e => onNoteChange(idx, "reason", e.target.value),
+    style: {
+      width: "100%",
+      boxSizing: "border-box",
+      border: "1.5px solid #E2E8F0",
+      borderRadius: 8,
+      padding: "9px 10px",
+      fontSize: 13,
+      outline: "none",
+      color: "#1E293B",
+      fontFamily: "inherit"
+    }
+  }), /*#__PURE__*/React.createElement("button", {
+    onClick: () => onNoteRemove(idx),
+    title: "\uD589 \uC0AD\uC81C",
+    style: {
+      width: 32,
+      height: 32,
+      border: "1px solid #FECACA",
+      background: "#FEF2F2",
+      color: "#EF4444",
+      borderRadius: 8,
+      fontSize: 16,
+      fontWeight: 700,
+      cursor: "pointer",
+      lineHeight: 1
+    }
+  }, "\u2212"))), /*#__PURE__*/React.createElement("button", {
+    onClick: onNoteAdd,
+    style: {
+      marginTop: 2,
+      padding: "8px 14px",
+      border: "1.5px dashed #CBD5E1",
+      background: "#F8FAFC",
+      color: "#475569",
+      borderRadius: 8,
+      fontSize: 12,
+      fontWeight: 600,
+      cursor: "pointer"
+    }
+  }, "+ \uD56D\uBAA9 \uCD94\uAC00")), error && /*#__PURE__*/React.createElement("div", {
     style: {
       background: "#FEF2F2",
       border: "1px solid #FECACA",
@@ -842,7 +971,7 @@ const initData = () => Object.fromEntries(DEPARTMENTS.map(d => [d.id, {
   submitter: "",
   g1Names: "",
   g2Names: "",
-  note: ""
+  noteItems: []
 }]));
 function App() {
   const [formData, setFormData] = useState(initData());
