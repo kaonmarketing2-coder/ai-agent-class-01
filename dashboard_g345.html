@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>교육 참석 그룹 배정 제출 (Group 1·2)</title>
+  <title>교육 배정 현황 대시보드 (Group 3·4·5)</title>
   <style> body { margin: 0; } </style>
 </head>
 <body>
@@ -310,681 +310,461 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 </script>
   <script>
 const {
-  useState
+  useState,
+  useEffect,
+  useCallback
 } = React;
 const SUPABASE_URL = "https://mrdmywosqzaqukdfvbzv.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1yZG15d29zcXphcXVrZGZ2Ynp2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5NzIzNTksImV4cCI6MjA4OTU0ODM1OX0.D2PKVx9cqyAg-qIpKdtUX9z9AwdjDwNgo6Nsyy4vdNM";
+const DASHBOARD_PASSWORD = "kaon2025";
+const GOOGLE_CLIENT_ID = "YOUR_CLIENT_ID.apps.googleusercontent.com";
 const HEADERS = {
-  "Content-Type": "application/json",
   "apikey": SUPABASE_KEY,
   "Authorization": `Bearer ${SUPABASE_KEY}`
 };
 const DEPARTMENTS = [{
-  id: "d1",
-  name: "RM본부/제조관리그룹",
-  sub: "구매 · 물류 · 자재",
-  total: 24
-}, {
-  id: "d2",
-  name: "RM본부/원가관리그룹",
+  id: "d4",
+  name: "영업본부",
   sub: "",
-  total: 6
+  total: 36
 }, {
-  id: "d3",
-  name: "RM본부/품질혁신그룹",
-  sub: "CS · 품질관리 · QA · 제조기술 · 자동화솔루션",
-  total: 28
+  id: "d5",
+  name: "Corporate실",
+  sub: "피플그룹 · 비전그룹",
+  total: 27
+}, {
+  id: "d6",
+  name: "PI그룹",
+  sub: "",
+  total: 8
+}, {
+  id: "d7",
+  name: "경영지원본부",
+  sub: "재무 · 회계 · IP",
+  total: 11
+}, {
+  id: "d8",
+  name: "RM본부 (ESG팀)",
+  sub: "",
+  total: 3
+}, {
+  id: "d9",
+  name: "ProjectManage본부",
+  sub: "",
+  total: 18
 }];
-const G1 = {
-  label: "Group 1",
-  date: "7/8(화) ~ 7/9(수)",
-  color: "#1D4ED8",
-  bg: "#EFF6FF",
-  border: "#BFDBFE",
-  tag: "#DBEAFE",
-  tagText: "#1E40AF"
+const G3 = {
+  label: "Group 3",
+  date: "7/15~7/16",
+  color: "#059669",
+  bg: "#ECFDF5",
+  border: "#A7F3D0",
+  tag: "#D1FAE5",
+  tagText: "#065F46"
 };
-const G2 = {
-  label: "Group 2",
-  date: "7/13(월) ~ 7/14(화)",
-  color: "#7C3AED",
-  bg: "#F5F3FF",
-  border: "#DDD6FE",
-  tag: "#EDE9FE",
-  tagText: "#5B21B6"
+const G4 = {
+  label: "Group 4",
+  date: "7/20~7/21",
+  color: "#D97706",
+  bg: "#FFFBEB",
+  border: "#FDE68A",
+  tag: "#FEF3C7",
+  tagText: "#92400E"
 };
-
-// ── 비고: 이름/사유 구조 ──────────────────────────────
-// 저장은 JSON 문자열로, 기존 plain text도 역호환 파싱
-function parseNote(note) {
-  if (!note) return [];
+const G5 = {
+  label: "Group 5",
+  date: "7/22~7/23",
+  color: "#DC2626",
+  bg: "#FEF2F2",
+  border: "#FECACA",
+  tag: "#FEE2E2",
+  tagText: "#991B1B"
+};
+const GROUPS = [G3, G4, G5];
+const GK = ["g3", "g4", "g5"];
+const parseNotes = s => {
+  if (!s) return [];
   try {
-    const parsed = JSON.parse(note);
-    if (Array.isArray(parsed)) {
-      return parsed.map(it => ({
-        name: (it && it.name || "").trim(),
-        reason: (it && it.reason || "").trim()
-      })).filter(it => it.name || it.reason);
-    }
-  } catch (e) {/* 기존 plain text */}
-  return [{
-    name: "",
-    reason: String(note).trim()
-  }];
+    return JSON.parse(s);
+  } catch {
+    return s ? [{
+      name: "-",
+      reason: s
+    }] : [];
+  }
+};
+async function fetchRows() {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/training_submissions_g345?select=*&order=submitted_at.desc`, {
+    headers: HEADERS
+  });
+  if (!res.ok) throw new Error("데이터 조회 실패");
+  return res.json();
 }
-function serializeNote(items) {
-  const clean = (items || []).map(it => ({
-    name: (it.name || "").trim(),
-    reason: (it.reason || "").trim()
-  })).filter(it => it.name || it.reason);
-  return clean.length ? JSON.stringify(clean) : "";
-}
-
-// 항상 새 레코드 INSERT (중복 허용, 모두 기록)
-async function insertSubmission(dept, data) {
-  const g1Names = data.g1Names.split("\n").filter(n => n.trim());
-  const g2Names = data.g2Names.split("\n").filter(n => n.trim());
-  const payload = {
-    department_id: dept.id,
-    department_name: dept.name,
-    submitter: data.submitter,
-    g1_names: data.g1Names,
-    g1_count: g1Names.length,
-    g2_names: data.g2Names,
-    g2_count: g2Names.length,
-    note: serializeNote(data.noteItems),
-    submitted_at: new Date().toISOString()
-  };
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/training_submissions`, {
-    method: "POST",
+async function deleteRow(id) {
+  await fetch(`${SUPABASE_URL}/rest/v1/training_submissions_g345?id=eq.${id}`, {
+    method: "DELETE",
     headers: {
       ...HEADERS,
-      "Prefer": "return=representation"
-    },
-    body: JSON.stringify(payload)
+      "Content-Type": "application/json"
+    }
   });
-  if (!res.ok) throw new Error("제출 실패. 잠시 후 다시 시도해주세요.");
-  const result = await res.json();
-  return result[0]?.id;
 }
-function NameInput({
-  value,
-  onChange,
-  placeholder,
-  color
+function exportCSV(rows) {
+  const h = ["부서명", "제출자", "Group3 인원", "Group3 명단", "Group4 인원", "Group4 명단", "Group5 인원", "Group5 명단", "비고", "인원상태", "제출일시"];
+  const lines = [h.join(","), ...rows.map(r => {
+    const dept = DEPARTMENTS.find(d => d.id === r.department_id);
+    const tot = GK.reduce((s, k) => s + (r[`${k}_count`] || 0), 0);
+    const diff = dept ? tot - dept.total : 0;
+    const st = diff === 0 ? "일치" : diff > 0 ? `${diff}명 초과` : `${Math.abs(diff)}명 부족`;
+    return [`"${r.department_name}"`, `"${r.submitter}"`, ...GK.flatMap(k => [r[`${k}_count`], `"${(r[`${k}_names`] || "").replace(/\n/g, " / ")}"`]), `"${parseNotes(r.note).map(n => `${n.name}: ${n.reason}`).join(" | ")}"`, `"${st}"`, `"${new Date(r.submitted_at).toLocaleString("ko-KR")}"`].join(",");
+  })];
+  const blob = new Blob(["\uFEFF" + lines.join("\n")], {
+    type: "text/csv;charset=utf-8;"
+  });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "교육배정현황_G345.csv";
+  a.click();
+}
+async function exportToGoogleSheets(rows) {
+  if (GOOGLE_CLIENT_ID === "YOUR_CLIENT_ID.apps.googleusercontent.com") throw new Error("SETUP_REQUIRED");
+  await new Promise((res, rej) => {
+    if (window.google?.accounts) {
+      res();
+      return;
+    }
+    const s = document.createElement("script");
+    s.src = "https://accounts.google.com/gsi/client";
+    s.onload = res;
+    s.onerror = () => rej(new Error("GSI 로드 실패"));
+    document.head.appendChild(s);
+  });
+  const token = await new Promise((res, rej) => {
+    window.google.accounts.oauth2.initTokenClient({
+      client_id: GOOGLE_CLIENT_ID,
+      scope: "https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file",
+      callback: r => r.error ? rej(new Error(r.error)) : res(r.access_token)
+    }).requestAccessToken();
+  });
+  const title = `교육배정현황_G3+4+5_${new Date().toLocaleDateString("ko-KR")}`;
+  const cr = await fetch("https://sheets.googleapis.com/v4/spreadsheets", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      properties: {
+        title
+      }
+    })
+  });
+  const {
+    spreadsheetId
+  } = await cr.json();
+  const header = ["부서명", "제출자", "Group3 인원", "Group3 명단", "Group4 인원", "Group4 명단", "Group5 인원", "Group5 명단", "비고", "인원상태", "제출일시"];
+  const values = [header, ...rows.map(r => {
+    const dept = DEPARTMENTS.find(d => d.id === r.department_id);
+    const tot = GK.reduce((s, k) => s + (r[`${k}_count`] || 0), 0);
+    const diff = dept ? tot - dept.total : 0;
+    const st = diff === 0 ? "일치" : diff > 0 ? `${diff}명 초과` : `${Math.abs(diff)}명 부족`;
+    return [r.department_name, r.submitter, ...GK.flatMap(k => [r[`${k}_count`], (r[`${k}_names`] || "").replace(/\n/g, " / ")]), parseNotes(r.note).map(n => `${n.name}: ${n.reason}`).join(" | "), st, new Date(r.submitted_at).toLocaleString("ko-KR")];
+  })];
+  await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/A1:append?valueInputOption=RAW`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      values
+    })
+  });
+  return `https://docs.google.com/spreadsheets/d/${spreadsheetId}`;
+}
+function PasswordGate({
+  onSuccess
 }) {
-  return /*#__PURE__*/React.createElement("textarea", {
-    value: value,
-    onChange: e => onChange(e.target.value),
-    placeholder: placeholder,
-    rows: 4,
+  const [pw, setPw] = useState("");
+  const [err, setErr] = useState(false);
+  const [shake, setShake] = useState(false);
+  const tryLogin = () => {
+    if (pw === DASHBOARD_PASSWORD) {
+      onSuccess();
+      return;
+    }
+    setErr(true);
+    setShake(true);
+    setTimeout(() => setShake(false), 500);
+    setPw("");
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      minHeight: "100vh",
+      background: "#0F172A",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: 24
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: "#1E293B",
+      borderRadius: 20,
+      padding: "48px 40px",
+      width: "100%",
+      maxWidth: 380,
+      boxShadow: "0 24px 60px rgba(0,0,0,0.4)",
+      transform: shake ? "translateX(-6px)" : "none",
+      transition: "transform 0.1s"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: "center",
+      marginBottom: 32
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 36,
+      marginBottom: 12
+    }
+  }, "\uD83D\uDD12"), /*#__PURE__*/React.createElement("h2", {
+    style: {
+      margin: "0 0 6px",
+      color: "#F1F5F9",
+      fontSize: 20,
+      fontWeight: 700
+    }
+  }, "\uAD00\uB9AC\uC790 \uB300\uC2DC\uBCF4\uB4DC"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: 0,
+      color: "#64748B",
+      fontSize: 13
+    }
+  }, "Group 3+4+5 \uAD50\uC721 \uBC30\uC815 \uD604\uD669")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 16
+    }
+  }, /*#__PURE__*/React.createElement("label", {
+    style: {
+      fontSize: 12,
+      fontWeight: 600,
+      color: "#94A3B8",
+      display: "block",
+      marginBottom: 8
+    }
+  }, "\uBE44\uBC00\uBC88\uD638"), /*#__PURE__*/React.createElement("input", {
+    type: "password",
+    value: pw,
+    onChange: e => {
+      setPw(e.target.value);
+      setErr(false);
+    },
+    onKeyDown: e => e.key === "Enter" && tryLogin(),
+    placeholder: "\uBE44\uBC00\uBC88\uD638 \uC785\uB825",
+    autoFocus: true,
     style: {
       width: "100%",
       boxSizing: "border-box",
-      border: "1.5px solid #E2E8F0",
-      borderRadius: 8,
-      padding: "10px 12px",
-      fontSize: 13,
-      lineHeight: 1.7,
-      color: "#334155",
-      resize: "vertical",
+      background: "#0F172A",
+      border: `1.5px solid ${err ? "#EF4444" : "#334155"}`,
+      borderRadius: 10,
+      padding: "12px 14px",
+      fontSize: 14,
+      color: "#F1F5F9",
       outline: "none",
-      fontFamily: "inherit",
-      background: "#fff"
-    },
-    onFocus: e => e.target.style.borderColor = color,
-    onBlur: e => e.target.style.borderColor = "#E2E8F0"
-  });
+      fontFamily: "inherit"
+    }
+  }), err && /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: "8px 0 0",
+      fontSize: 12,
+      color: "#EF4444"
+    }
+  }, "\uBE44\uBC00\uBC88\uD638\uAC00 \uC62C\uBC14\uB974\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.")), /*#__PURE__*/React.createElement("button", {
+    onClick: tryLogin,
+    style: {
+      width: "100%",
+      padding: 13,
+      background: "#059669",
+      color: "#fff",
+      border: "none",
+      borderRadius: 10,
+      fontSize: 14,
+      fontWeight: 700,
+      cursor: "pointer"
+    }
+  }, "\uC785\uC7A5\uD558\uAE30")));
 }
-function DeptForm({
-  dept,
-  data,
-  onChange,
-  onSubmitSuccess,
-  isSubmitted,
-  onEditRequest
+function SetupModal({
+  onClose
 }) {
-  const [loading, setLoading] = useState(false);
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "fixed",
+      inset: 0,
+      background: "rgba(0,0,0,0.6)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 1000,
+      padding: 16
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: "#fff",
+      borderRadius: 16,
+      padding: "32px 28px",
+      maxWidth: 480,
+      width: "100%",
+      boxShadow: "0 24px 60px rgba(0,0,0,0.3)"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 24,
+      marginBottom: 12
+    }
+  }, "\uD83D\uDEE0\uFE0F"), /*#__PURE__*/React.createElement("h3", {
+    style: {
+      margin: "0 0 8px",
+      fontSize: 18,
+      fontWeight: 700,
+      color: "#0F172A"
+    }
+  }, "Google Sheets \uC5F0\uB3D9 \uC124\uC815"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: "0 0 20px",
+      fontSize: 13,
+      color: "#64748B",
+      lineHeight: 1.7
+    }
+  }, "Google Sheets\uB85C \uB0B4\uBCF4\uB0B4\uB824\uBA74 OAuth \uD074\uB77C\uC774\uC5B8\uD2B8 ID \uC124\uC815\uC774 \uD544\uC694\uD569\uB2C8\uB2E4."), /*#__PURE__*/React.createElement("ol", {
+    style: {
+      margin: "0 0 20px",
+      padding: "0 0 0 18px",
+      fontSize: 13,
+      color: "#334155",
+      lineHeight: 2
+    }
+  }, /*#__PURE__*/React.createElement("li", null, /*#__PURE__*/React.createElement("a", {
+    href: "https://console.cloud.google.com/",
+    target: "_blank",
+    rel: "noreferrer",
+    style: {
+      color: "#2563EB"
+    }
+  }, "Google Cloud Console"), " \uC811\uC18D"), /*#__PURE__*/React.createElement("li", null, "\uC0C8 \uD504\uB85C\uC81D\uD2B8 \uC0DD\uC131 \u2192 ", /*#__PURE__*/React.createElement("strong", null, "Google Sheets API"), " \uD65C\uC131\uD654"), /*#__PURE__*/React.createElement("li", null, "\uC0AC\uC6A9\uC790 \uC778\uC99D \uC815\uBCF4 \u2192 OAuth 2.0 \uD074\uB77C\uC774\uC5B8\uD2B8 ID \uC0DD\uC131 (\uC6F9 \uC560\uD50C\uB9AC\uCF00\uC774\uC158)"), /*#__PURE__*/React.createElement("li", null, "\uC2B9\uC778\uB41C JS \uC6D0\uBCF8\uC5D0 ", /*#__PURE__*/React.createElement("code", {
+    style: {
+      background: "#F1F5F9",
+      padding: "1px 6px",
+      borderRadius: 4
+    }
+  }, "https://claude.ai"), " \uCD94\uAC00"), /*#__PURE__*/React.createElement("li", null, "\uD074\uB77C\uC774\uC5B8\uD2B8 ID\uB97C \uD30C\uC77C \uC0C1\uB2E8 ", /*#__PURE__*/React.createElement("code", {
+    style: {
+      background: "#F1F5F9",
+      padding: "1px 6px",
+      borderRadius: 4
+    }
+  }, "GOOGLE_CLIENT_ID"), "\uC5D0 \uC785\uB825")), /*#__PURE__*/React.createElement("button", {
+    onClick: onClose,
+    style: {
+      width: "100%",
+      padding: "11px",
+      background: "#0F172A",
+      color: "#fff",
+      border: "none",
+      borderRadius: 10,
+      fontSize: 14,
+      fontWeight: 700,
+      cursor: "pointer"
+    }
+  }, "\uD655\uC778")));
+}
+function Dashboard({
+  onLock
+}) {
+  const [rows, setRows] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const g1Count = data.g1Names.split("\n").filter(n => n.trim()).length;
-  const g2Count = data.g2Names.split("\n").filter(n => n.trim()).length;
-  const total = g1Count + g2Count;
-  const diff = total - dept.total;
-
-  // 제출 조건: 제출자 이름만 있으면 됨 (인원 일치 불필요)
-  const canSubmit = data.submitter.trim().length > 0;
-
-  // 비고 행 편집 핸들러
-  const noteItems = data.noteItems || [];
-  const setNoteItems = next => onChange("noteItems", next);
-  const onNoteChange = (idx, key, val) => setNoteItems(noteItems.map((it, i) => i === idx ? {
-    ...it,
-    [key]: val
-  } : it));
-  const onNoteAdd = () => setNoteItems([...noteItems, {
-    name: "",
-    reason: ""
-  }]);
-  const onNoteRemove = idx => setNoteItems(noteItems.filter((_, i) => i !== idx));
-  const handleSubmit = async () => {
-    if (!canSubmit || loading) return;
+  const [deleting, setDeleting] = useState(null);
+  const [activeTab, setActiveTab] = useState("overview");
+  const [gsLoading, setGsLoading] = useState(false);
+  const [gsUrl, setGsUrl] = useState("");
+  const [gsError, setGsError] = useState("");
+  const [showSetup, setShowSetup] = useState(false);
+  const load = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
-      const id = await insertSubmission(dept, data);
-      onSubmitSuccess(id);
+      setRows(await fetchRows());
     } catch (e) {
       setError(e.message);
     } finally {
       setLoading(false);
     }
+  }, []);
+  useEffect(() => {
+    load();
+  }, [load]);
+  const latestByDept = DEPARTMENTS.map(dept => ({
+    dept,
+    latest: rows.find(r => r.department_id === dept.id) || null,
+    allRows: rows.filter(r => r.department_id === dept.id)
+  }));
+  const submittedCount = latestByDept.filter(x => x.latest).length;
+  const groupTotals = GK.map(k => latestByDept.reduce((s, x) => s + (x.latest?.[`${k}_count`] || 0), 0));
+  const handleDelete = async (id, name) => {
+    if (!window.confirm(`"${name}" 제출 내역을 삭제하시겠습니까?`)) return;
+    setDeleting(id);
+    await deleteRow(id);
+    await load();
+    setDeleting(null);
   };
-
-  // 인원 상태 레이블
-  const countStatus = () => {
-    if (total === 0) return null;
-    if (total === dept.total) return {
+  const handleGS = async () => {
+    if (GOOGLE_CLIENT_ID === "YOUR_CLIENT_ID.apps.googleusercontent.com") {
+      setShowSetup(true);
+      return;
+    }
+    setGsLoading(true);
+    setGsError("");
+    setGsUrl("");
+    try {
+      const url = await exportToGoogleSheets(latestByDept.filter(x => x.latest).map(x => x.latest));
+      setGsUrl(url);
+    } catch (e) {
+      if (e.message === "SETUP_REQUIRED") setShowSetup(true);else setGsError(e.message || "Google Sheets 내보내기 실패");
+    } finally {
+      setGsLoading(false);
+    }
+  };
+  const getStatus = (row, dept) => {
+    const t = GK.reduce((s, k) => s + (row[`${k}_count`] || 0), 0);
+    const d = t - dept.total;
+    if (d === 0) return {
       text: "인원 일치",
       color: "#16A34A",
       bg: "#DCFCE7"
     };
-    if (diff > 0) return {
-      text: `${diff}명 초과`,
+    if (d > 0) return {
+      text: `${d}명 초과`,
       color: "#DC2626",
       bg: "#FEF2F2"
     };
     return {
-      text: `${Math.abs(diff)}명 부족`,
+      text: `${Math.abs(d)}명 부족`,
       color: "#D97706",
       bg: "#FFFBEB"
     };
   };
-  const status = countStatus();
-  return /*#__PURE__*/React.createElement("div", {
-    style: {
-      background: isSubmitted ? "#F0FDF4" : "#fff",
-      border: `1.5px solid ${isSubmitted ? "#86EFAC" : "#E2E8F0"}`,
-      borderRadius: 14,
-      overflow: "hidden",
-      marginBottom: 16
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      padding: "16px 20px",
-      background: isSubmitted ? "#DCFCE7" : "#F8FAFC",
-      borderBottom: `1px solid ${isSubmitted ? "#BBF7D0" : "#E2E8F0"}`,
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center"
-    }
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 15,
-      fontWeight: 700,
-      color: "#0F172A"
-    }
-  }, dept.name), dept.sub && /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 12,
-      color: "#94A3B8",
-      marginTop: 2
-    }
-  }, dept.sub)), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      alignItems: "center",
-      gap: 8
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      background: "#E2E8F0",
-      color: "#475569",
-      borderRadius: 99,
-      fontSize: 12,
-      fontWeight: 700,
-      padding: "3px 12px"
-    }
-  }, "\uC804\uCCB4 ", dept.total, "\uBA85"), isSubmitted && /*#__PURE__*/React.createElement("span", {
-    style: {
-      background: "#22C55E",
-      color: "#fff",
-      borderRadius: 99,
-      fontSize: 11,
-      fontWeight: 700,
-      padding: "3px 12px"
-    }
-  }, "\u2713 \uC81C\uCD9C\uC644\uB8CC"))), isSubmitted ? /*#__PURE__*/React.createElement("div", {
-    style: {
-      padding: "20px"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "grid",
-      gridTemplateColumns: "1fr 1fr",
-      gap: 10,
-      marginBottom: 12
-    }
-  }, [{
-    g: G1,
-    names: data.g1Names,
-    count: g1Count
-  }, {
-    g: G2,
-    names: data.g2Names,
-    count: g2Count
-  }].map(({
-    g,
-    names,
-    count
-  }) => /*#__PURE__*/React.createElement("div", {
-    key: g.label,
-    style: {
-      background: g.bg,
-      border: `1px solid ${g.border}`,
-      borderRadius: 10,
-      padding: "12px 14px"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      justifyContent: "space-between",
-      marginBottom: 8
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontSize: 12,
-      fontWeight: 700,
-      color: g.color
-    }
-  }, g.label), /*#__PURE__*/React.createElement("span", {
-    style: {
-      background: g.tag,
-      color: g.tagText,
-      fontSize: 11,
-      fontWeight: 700,
-      borderRadius: 99,
-      padding: "2px 8px"
-    }
-  }, count, "\uBA85")), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 12,
-      color: "#475569",
-      lineHeight: 1.8
-    }
-  }, names.split("\n").filter(n => n.trim()).length > 0 ? names.split("\n").filter(n => n.trim()).map((n, i) => /*#__PURE__*/React.createElement("div", {
-    key: i
-  }, "\xB7 ", n)) : /*#__PURE__*/React.createElement("span", {
-    style: {
-      color: "#CBD5E1"
-    }
-  }, "\uBBF8\uBC30\uC815"))))), total !== dept.total && total > 0 && /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 12,
-      padding: "7px 12px",
-      borderRadius: 8,
-      marginBottom: 10,
-      background: diff > 0 ? "#FEF2F2" : "#FFFBEB",
-      color: diff > 0 ? "#DC2626" : "#D97706",
-      border: `1px solid ${diff > 0 ? "#FECACA" : "#FDE68A"}`
-    }
-  }, "\u26A0\uFE0F \uBC30\uC815 \uC778\uC6D0(", total, "\uBA85)\uC774 \uC804\uCCB4 \uC778\uC6D0(", dept.total, "\uBA85)\uACFC ", diff > 0 ? `${diff}명 초과` : `${Math.abs(diff)}명 부족`, "\uD569\uB2C8\uB2E4."), noteItems.filter(it => (it.name || "").trim() || (it.reason || "").trim()).length > 0 && /*#__PURE__*/React.createElement("div", {
-    style: {
-      background: "#F1F5F9",
-      borderRadius: 8,
-      padding: "10px 12px",
-      marginBottom: 12
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 11,
-      fontWeight: 700,
-      color: "#64748B",
-      marginBottom: 6
-    }
-  }, "\uD83D\uDCDD \uBE44\uACE0"), noteItems.filter(it => (it.name || "").trim() || (it.reason || "").trim()).map((it, i) => /*#__PURE__*/React.createElement("div", {
-    key: i,
-    style: {
-      fontSize: 12,
-      color: "#475569",
-      lineHeight: 1.8
-    }
-  }, it.name && /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontWeight: 700,
-      color: "#334155"
-    }
-  }, it.name), it.name && it.reason && /*#__PURE__*/React.createElement("span", {
-    style: {
-      color: "#94A3B8"
-    }
-  }, " \xB7 "), it.reason))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 12,
-      color: "#94A3B8",
-      marginBottom: 10
-    }
-  }, "\uC81C\uCD9C\uC790: ", data.submitter), /*#__PURE__*/React.createElement("button", {
-    onClick: onEditRequest,
-    style: {
-      fontSize: 12,
-      color: "#64748B",
-      background: "none",
-      border: "1px solid #CBD5E1",
-      borderRadius: 6,
-      padding: "5px 14px",
-      cursor: "pointer"
-    }
-  }, "\uC7AC\uC81C\uCD9C\uD558\uAE30")) : /*#__PURE__*/React.createElement("div", {
-    style: {
-      padding: "20px"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginBottom: 18
-    }
-  }, /*#__PURE__*/React.createElement("label", {
-    style: {
-      fontSize: 12,
-      fontWeight: 700,
-      color: "#475569",
-      display: "block",
-      marginBottom: 6
-    }
-  }, "\uC81C\uCD9C\uC790 ", /*#__PURE__*/React.createElement("span", {
-    style: {
-      color: "#EF4444"
-    }
-  }, "*")), /*#__PURE__*/React.createElement("input", {
-    type: "text",
-    placeholder: "\uC774\uB984 \xB7 \uC9C1\uCC45 (\uC608: \uD64D\uAE38\uB3D9 \uD300\uC7A5)",
-    value: data.submitter,
-    onChange: e => onChange("submitter", e.target.value),
-    style: {
-      width: "100%",
-      boxSizing: "border-box",
-      border: "1.5px solid #E2E8F0",
-      borderRadius: 8,
-      padding: "10px 12px",
-      fontSize: 13,
-      outline: "none",
-      color: "#1E293B",
-      fontFamily: "inherit"
-    }
-  })), /*#__PURE__*/React.createElement("div", {
-    style: {
-      background: "#FFFBEB",
-      border: "1px solid #FDE68A",
-      borderRadius: 8,
-      padding: "10px 14px",
-      marginBottom: 18,
-      fontSize: 12,
-      color: "#92400E"
-    }
-  }, "\uD83D\uDCA1 \uBC30\uC815\uB41C \uADF8\uB8F9\uC758 \uAD50\uC721\uC740 ", /*#__PURE__*/React.createElement("strong", null, "2\uC77C \uC804\uC77C \uD544\uC218 \uCC38\uC11D"), "\uC785\uB2C8\uB2E4. \uC774\uB984\uC744 \uD55C \uC904\uC5D0 \uD55C \uBA85\uC529 \uC785\uB825\uD574\uC8FC\uC138\uC694."), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "grid",
-      gridTemplateColumns: "1fr 1fr",
-      gap: 12,
-      marginBottom: 16
-    }
-  }, [{
-    g: G1,
-    key: "g1Names",
-    count: g1Count
-  }, {
-    g: G2,
-    key: "g2Names",
-    count: g2Count
-  }].map(({
-    g,
-    key,
-    count
-  }) => /*#__PURE__*/React.createElement("div", {
-    key: g.label,
-    style: {
-      border: `1.5px solid ${g.border}`,
-      borderRadius: 10,
-      overflow: "hidden"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      background: g.bg,
-      padding: "10px 14px",
-      borderBottom: `1px solid ${g.border}`
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center"
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontSize: 13,
-      fontWeight: 700,
-      color: g.color
-    }
-  }, g.label), /*#__PURE__*/React.createElement("span", {
-    style: {
-      background: g.tag,
-      color: g.tagText,
-      fontSize: 11,
-      fontWeight: 700,
-      borderRadius: 99,
-      padding: "2px 8px"
-    }
-  }, count, "\uBA85")), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 11,
-      color: g.color,
-      opacity: 0.8,
-      marginTop: 2
-    }
-  }, "\uD83D\uDCC5 ", g.date, " \xB7 2\uC77C \uD544\uC218")), /*#__PURE__*/React.createElement("div", {
-    style: {
-      padding: "10px"
-    }
-  }, /*#__PURE__*/React.createElement(NameInput, {
-    value: data[key],
-    onChange: v => onChange(key, v),
-    placeholder: "홍길동\n김철수\n이영희",
-    color: g.color
-  }))))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "flex-end",
-      gap: 8,
-      marginBottom: 14,
-      fontSize: 13
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      color: "#64748B"
-    }
-  }, "\uBC30\uC815 \uD604\uD669:"), /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontWeight: 700,
-      color: G1.color
-    }
-  }, g1Count, "\uBA85"), /*#__PURE__*/React.createElement("span", {
-    style: {
-      color: "#94A3B8"
-    }
-  }, "+"), /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontWeight: 700,
-      color: G2.color
-    }
-  }, g2Count, "\uBA85"), /*#__PURE__*/React.createElement("span", {
-    style: {
-      color: "#94A3B8"
-    }
-  }, "="), /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontWeight: 700,
-      color: total === dept.total ? "#16A34A" : total > dept.total ? "#DC2626" : "#64748B"
-    }
-  }, total, "\uBA85"), /*#__PURE__*/React.createElement("span", {
-    style: {
-      color: "#94A3B8"
-    }
-  }, "/"), /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontWeight: 700,
-      color: "#0F172A"
-    }
-  }, dept.total, "\uBA85"), status && /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontSize: 11,
-      color: status.color,
-      background: status.bg,
-      padding: "2px 8px",
-      borderRadius: 99,
-      fontWeight: 600
-    }
-  }, status.text)), /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginBottom: 18
-    }
-  }, /*#__PURE__*/React.createElement("label", {
-    style: {
-      fontSize: 12,
-      fontWeight: 700,
-      color: "#475569",
-      display: "block",
-      marginBottom: 6
-    }
-  }, "\uBE44\uACE0 ", /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontWeight: 400,
-      color: "#94A3B8"
-    }
-  }, "(\uC608\uC678 \uC778\uC6D0\uC758 \uC774\uB984\uACFC \uC0AC\uC720, \uC120\uD0DD)")), noteItems.length > 0 && /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "grid",
-      gridTemplateColumns: "120px 1fr 32px",
-      gap: 8,
-      marginBottom: 6,
-      fontSize: 11,
-      fontWeight: 700,
-      color: "#94A3B8",
-      padding: "0 2px"
-    }
-  }, /*#__PURE__*/React.createElement("span", null, "\uC774\uB984"), /*#__PURE__*/React.createElement("span", null, "\uC0AC\uC720"), /*#__PURE__*/React.createElement("span", null)), noteItems.map((item, idx) => /*#__PURE__*/React.createElement("div", {
-    key: idx,
-    style: {
-      display: "grid",
-      gridTemplateColumns: "120px 1fr 32px",
-      gap: 8,
-      marginBottom: 8,
-      alignItems: "center"
-    }
-  }, /*#__PURE__*/React.createElement("input", {
-    type: "text",
-    placeholder: "\uC774\uB984",
-    value: item.name,
-    onChange: e => onNoteChange(idx, "name", e.target.value),
-    style: {
-      width: "100%",
-      boxSizing: "border-box",
-      border: "1.5px solid #E2E8F0",
-      borderRadius: 8,
-      padding: "9px 10px",
-      fontSize: 13,
-      outline: "none",
-      color: "#1E293B",
-      fontFamily: "inherit"
-    }
-  }), /*#__PURE__*/React.createElement("input", {
-    type: "text",
-    placeholder: "\uC0AC\uC720 (\uC608: \uD734\uAC00, \uCD9C\uC7A5 \uB4F1)",
-    value: item.reason,
-    onChange: e => onNoteChange(idx, "reason", e.target.value),
-    style: {
-      width: "100%",
-      boxSizing: "border-box",
-      border: "1.5px solid #E2E8F0",
-      borderRadius: 8,
-      padding: "9px 10px",
-      fontSize: 13,
-      outline: "none",
-      color: "#1E293B",
-      fontFamily: "inherit"
-    }
-  }), /*#__PURE__*/React.createElement("button", {
-    onClick: () => onNoteRemove(idx),
-    title: "\uD589 \uC0AD\uC81C",
-    style: {
-      width: 32,
-      height: 32,
-      border: "1px solid #FECACA",
-      background: "#FEF2F2",
-      color: "#EF4444",
-      borderRadius: 8,
-      fontSize: 16,
-      fontWeight: 700,
-      cursor: "pointer",
-      lineHeight: 1
-    }
-  }, "\u2212"))), /*#__PURE__*/React.createElement("button", {
-    onClick: onNoteAdd,
-    style: {
-      marginTop: 2,
-      padding: "8px 14px",
-      border: "1.5px dashed #CBD5E1",
-      background: "#F8FAFC",
-      color: "#475569",
-      borderRadius: 8,
-      fontSize: 12,
-      fontWeight: 600,
-      cursor: "pointer"
-    }
-  }, "+ \uD56D\uBAA9 \uCD94\uAC00")), error && /*#__PURE__*/React.createElement("div", {
-    style: {
-      background: "#FEF2F2",
-      border: "1px solid #FECACA",
-      borderRadius: 8,
-      padding: "10px 14px",
-      marginBottom: 14,
-      fontSize: 12,
-      color: "#DC2626"
-    }
-  }, "\u26A0\uFE0F ", error), /*#__PURE__*/React.createElement("button", {
-    onClick: handleSubmit,
-    disabled: !canSubmit || loading,
-    style: {
-      width: "100%",
-      padding: "12px",
-      border: "none",
-      borderRadius: 10,
-      fontSize: 14,
-      fontWeight: 700,
-      transition: "all 0.2s",
-      cursor: canSubmit && !loading ? "pointer" : "not-allowed",
-      background: canSubmit && !loading ? "#0F172A" : "#E2E8F0",
-      color: canSubmit && !loading ? "#fff" : "#94A3B8"
-    }
-  }, loading ? "저장 중..." : !data.submitter.trim() ? "제출자 이름을 입력해주세요" : "제출하기 →")));
-}
-const initData = () => Object.fromEntries(DEPARTMENTS.map(d => [d.id, {
-  submitter: "",
-  g1Names: "",
-  g2Names: "",
-  noteItems: []
-}]));
-function App() {
-  const [formData, setFormData] = useState(initData());
-  const [submittedSet, setSubmittedSet] = useState({});
-  const update = (deptId, field, value) => setFormData(prev => ({
-    ...prev,
-    [deptId]: {
-      ...prev[deptId],
-      [field]: value
-    }
-  }));
-  const submittedCount = DEPARTMENTS.filter(d => submittedSet[d.id]).length;
-  const progress = Math.round(submittedCount / DEPARTMENTS.length * 100);
+  const Btn = active => ({
+    padding: "8px 14px",
+    border: active ? "none" : "1px solid #334155",
+    borderRadius: 8,
+    fontSize: 12,
+    cursor: "pointer",
+    background: active ? "#059669" : "#1E293B",
+    color: active ? "#fff" : "#94A3B8"
+  });
   return /*#__PURE__*/React.createElement("div", {
     style: {
       fontFamily: "'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif",
@@ -992,96 +772,172 @@ function App() {
       minHeight: "100vh",
       padding: "28px 16px"
     }
-  }, /*#__PURE__*/React.createElement("div", {
+  }, showSetup && /*#__PURE__*/React.createElement(SetupModal, {
+    onClose: () => setShowSetup(false)
+  }), /*#__PURE__*/React.createElement("div", {
     style: {
-      maxWidth: 760,
+      maxWidth: 860,
       margin: "0 auto"
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
       background: "#0F172A",
       borderRadius: 16,
-      padding: "28px 32px",
+      padding: "24px 28px",
       marginBottom: 20,
       color: "#fff"
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
-      display: "inline-flex",
-      alignItems: "center",
-      gap: 6,
-      background: "#1E293B",
-      borderRadius: 99,
-      padding: "4px 12px",
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "flex-start",
+      flexWrap: "wrap",
+      gap: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
       fontSize: 11,
       color: "#94A3B8",
-      marginBottom: 14,
-      letterSpacing: 1
+      letterSpacing: 1,
+      marginBottom: 8
     }
-  }, "GROUP 1 \xB7 2 \uB300\uC0C1"), /*#__PURE__*/React.createElement("h1", {
+  }, "ADMIN \xB7 GROUP 3\xB74\xB75"), /*#__PURE__*/React.createElement("h1", {
     style: {
-      margin: "0 0 8px",
-      fontSize: 22,
+      margin: "0 0 4px",
+      fontSize: 20,
       fontWeight: 700,
       color: "#F1F5F9"
     }
-  }, "\uAD50\uC721 \uCC38\uC11D \uADF8\uB8F9 \uBC30\uC815 \uC81C\uCD9C"), /*#__PURE__*/React.createElement("p", {
+  }, "\uAD50\uC721 \uBC30\uC815 \uD604\uD669 \uB300\uC2DC\uBCF4\uB4DC"), /*#__PURE__*/React.createElement("p", {
     style: {
-      margin: "0 0 20px",
-      fontSize: 13,
-      color: "#94A3B8",
-      lineHeight: 1.7
+      margin: 0,
+      fontSize: 12,
+      color: "#64748B"
     }
-  }, "\uBD80\uC11C \uC778\uC6D0\uC744 ", /*#__PURE__*/React.createElement("strong", {
+  }, "\uC911\uBCF5 \uC81C\uCD9C \uBAA8\uB450 \uAE30\uB85D \xB7 \uCD5C\uC2E0 \uAE30\uC900 \uC9D1\uACC4")), /*#__PURE__*/React.createElement("div", {
     style: {
-      color: "#93C5FD"
+      display: "flex",
+      gap: 8,
+      flexWrap: "wrap"
     }
-  }, "Group 1 (7/8~7/9)"), " \uB610\uB294", " ", /*#__PURE__*/React.createElement("strong", {
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: load,
+    style: Btn(false)
+  }, "\uD83D\uDD04 \uC0C8\uB85C\uACE0\uCE68"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => rows.length && exportCSV(latestByDept.filter(x => x.latest).map(x => x.latest)),
+    disabled: !rows.length,
+    style: Btn(false)
+  }, "\uD83D\uDCE5 CSV"), /*#__PURE__*/React.createElement("button", {
+    onClick: handleGS,
+    disabled: gsLoading || !rows.length,
+    style: Btn(false)
+  }, gsLoading ? "⏳ 내보내는 중..." : "📊 Google Sheets"), /*#__PURE__*/React.createElement("button", {
+    onClick: onLock,
+    style: Btn(false)
+  }, "\uD83D\uDD12 \uC7A0\uAE08"))), gsUrl && /*#__PURE__*/React.createElement("div", {
     style: {
-      color: "#C4B5FD"
+      marginTop: 12,
+      padding: "10px 14px",
+      background: "#14532D",
+      borderRadius: 8,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: 12
     }
-  }, "Group 2 (7/13~7/14)"), "\uB85C \uB098\uB204\uC5B4 \uBC30\uC815\uD574\uC8FC\uC138\uC694.", /*#__PURE__*/React.createElement("br", null), "\uBC30\uC815\uB41C \uADF8\uB8F9\uC758 \uAD50\uC721\uC740 ", /*#__PURE__*/React.createElement("strong", {
+  }, /*#__PURE__*/React.createElement("span", {
     style: {
+      fontSize: 12,
+      color: "#86EFAC"
+    }
+  }, "\u2705 Google Sheets \uC0DD\uC131 \uC644\uB8CC"), /*#__PURE__*/React.createElement("a", {
+    href: gsUrl,
+    target: "_blank",
+    rel: "noreferrer",
+    style: {
+      fontSize: 12,
+      color: "#4ADE80",
+      fontWeight: 700,
+      textDecoration: "underline"
+    }
+  }, "\uC2DC\uD2B8 \uC5F4\uAE30 \u2192")), gsError && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 12,
+      padding: "10px 14px",
+      background: "#7F1D1D",
+      borderRadius: 8,
+      fontSize: 12,
       color: "#FCA5A5"
     }
-  }, "2\uC77C \uC804\uC77C \uD544\uC218 \uCC38\uC11D"), "\uC785\uB2C8\uB2E4."), /*#__PURE__*/React.createElement("div", {
+  }, "\u26A0\uFE0F ", gsError), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "grid",
-      gridTemplateColumns: "1fr 1fr",
-      gap: 10,
-      marginBottom: 20
+      gridTemplateColumns: "repeat(5,1fr)",
+      gap: 8,
+      marginTop: 20
     }
-  }, [G1, G2].map(g => /*#__PURE__*/React.createElement("div", {
-    key: g.label,
+  }, [{
+    label: "제출 완료",
+    value: `${submittedCount}/${DEPARTMENTS.length}`,
+    sub: "부서",
+    color: "#34D399"
+  }, {
+    label: "전체 제출",
+    value: rows.length,
+    sub: "건",
+    color: "#FB923C"
+  }, {
+    label: "Group 3",
+    value: groupTotals[0],
+    sub: "명",
+    color: G3.color
+  }, {
+    label: "Group 4",
+    value: groupTotals[1],
+    sub: "명",
+    color: G4.color
+  }, {
+    label: "Group 5",
+    value: groupTotals[2],
+    sub: "명",
+    color: G5.color
+  }].map(c => /*#__PURE__*/React.createElement("div", {
+    key: c.label,
     style: {
       background: "#1E293B",
       borderRadius: 10,
-      padding: "12px 16px"
+      padding: "10px 12px"
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
-      fontSize: 12,
-      fontWeight: 700,
-      color: g.color === "#1D4ED8" ? "#93C5FD" : "#C4B5FD",
+      fontSize: 10,
+      color: "#64748B",
       marginBottom: 4
     }
-  }, g.label), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 13,
-      color: "#E2E8F0",
-      fontWeight: 600
-    }
-  }, g.date), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 11,
-      color: "#64748B",
-      marginTop: 2
-    }
-  }, "2\uC77C \uC804\uC77C \uD544\uC218 \uCC38\uC11D")))), /*#__PURE__*/React.createElement("div", {
+  }, c.label), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
+      alignItems: "baseline",
+      gap: 3
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 18,
+      fontWeight: 700,
+      color: c.color
+    }
+  }, c.value), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 10,
+      color: "#64748B"
+    }
+  }, c.sub))))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 14,
+      display: "flex",
       alignItems: "center",
-      gap: 12
+      gap: 10
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
@@ -1093,11 +949,11 @@ function App() {
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
-      width: `${progress}%`,
+      width: `${submittedCount / DEPARTMENTS.length * 100}%`,
       height: "100%",
-      background: "#38BDF8",
+      background: "#34D399",
       borderRadius: 99,
-      transition: "width 0.4s"
+      transition: "width 0.5s"
     }
   })), /*#__PURE__*/React.createElement("span", {
     style: {
@@ -1105,56 +961,497 @@ function App() {
       color: "#94A3B8",
       whiteSpace: "nowrap"
     }
-  }, submittedCount, " / ", DEPARTMENTS.length, " \uBD80\uC11C \uC81C\uCD9C"))), DEPARTMENTS.map(dept => /*#__PURE__*/React.createElement(DeptForm, {
-    key: dept.id,
-    dept: dept,
-    data: formData[dept.id],
-    onChange: (field, value) => update(dept.id, field, value),
-    onSubmitSuccess: () => setSubmittedSet(prev => ({
-      ...prev,
-      [dept.id]: true
-    })),
-    isSubmitted: !!submittedSet[dept.id],
-    onEditRequest: () => setSubmittedSet(prev => {
-      const n = {
-        ...prev
-      };
-      delete n[dept.id];
-      return n;
-    })
-  })), submittedCount === DEPARTMENTS.length && /*#__PURE__*/React.createElement("div", {
+  }, Math.round(submittedCount / DEPARTMENTS.length * 100), "%"))), /*#__PURE__*/React.createElement("div", {
     style: {
-      background: "#F0FDF4",
-      border: "1.5px solid #86EFAC",
-      borderRadius: 14,
-      padding: "24px",
-      textAlign: "center"
+      display: "flex",
+      gap: 4,
+      marginBottom: 16,
+      background: "#E2E8F0",
+      borderRadius: 10,
+      padding: 4
+    }
+  }, [["overview", "📋 부서별 현황"], ["names", "👥 명단 상세"], ["history", "🕘 전체 이력"]].map(([k, l]) => /*#__PURE__*/React.createElement("button", {
+    key: k,
+    onClick: () => setActiveTab(k),
+    style: {
+      flex: 1,
+      padding: "9px 0",
+      border: "none",
+      borderRadius: 8,
+      cursor: "pointer",
+      fontSize: 13,
+      fontWeight: 600,
+      background: activeTab === k ? "#fff" : "transparent",
+      color: activeTab === k ? "#0F172A" : "#64748B",
+      boxShadow: activeTab === k ? "0 1px 4px rgba(0,0,0,0.1)" : "none"
+    }
+  }, l))), loading && /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: "center",
+      padding: "60px 0",
+      color: "#64748B"
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 28,
-      marginBottom: 8
+      marginBottom: 12
     }
-  }, "\u2705"), /*#__PURE__*/React.createElement("div", {
+  }, "\u23F3"), "\uBD88\uB7EC\uC624\uB294 \uC911..."), error && !loading && /*#__PURE__*/React.createElement("div", {
     style: {
-      fontSize: 16,
-      fontWeight: 700,
-      color: "#166534",
-      marginBottom: 4
+      background: "#FEF2F2",
+      border: "1px solid #FECACA",
+      borderRadius: 12,
+      padding: "20px",
+      textAlign: "center",
+      color: "#DC2626",
+      fontSize: 13
     }
-  }, "\uBAA8\uB4E0 \uBD80\uC11C \uC81C\uCD9C\uC774 \uC644\uB8CC\uB418\uC5C8\uC2B5\uB2C8\uB2E4"), /*#__PURE__*/React.createElement("div", {
+  }, "\u26A0\uFE0F ", error, /*#__PURE__*/React.createElement("button", {
+    onClick: load,
+    style: {
+      marginLeft: 12,
+      padding: "4px 12px",
+      background: "#DC2626",
+      color: "#fff",
+      border: "none",
+      borderRadius: 6,
+      fontSize: 12,
+      cursor: "pointer"
+    }
+  }, "\uC7AC\uC2DC\uB3C4")), !loading && !error && activeTab === "overview" && /*#__PURE__*/React.createElement("div", null, latestByDept.map(({
+    dept,
+    latest,
+    allRows
+  }) => {
+    const st = latest ? getStatus(latest, dept) : null;
+    return /*#__PURE__*/React.createElement("div", {
+      key: dept.id,
+      style: {
+        background: "#fff",
+        border: `1.5px solid ${latest ? "#E2E8F0" : "#FEE2E2"}`,
+        borderRadius: 12,
+        marginBottom: 12,
+        overflow: "hidden"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        padding: "14px 18px",
+        background: latest ? "#F8FAFC" : "#FEF2F2",
+        borderBottom: `1px solid ${latest ? "#E2E8F0" : "#FECACA"}`,
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center"
+      }
+    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 14,
+        fontWeight: 700,
+        color: "#0F172A"
+      }
+    }, dept.name), dept.sub && /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 11,
+        color: "#94A3B8",
+        marginTop: 1
+      }
+    }, dept.sub)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        alignItems: "center",
+        gap: 8
+      }
+    }, allRows.length > 1 && /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 11,
+        color: "#F59E0B",
+        background: "#FFFBEB",
+        border: "1px solid #FDE68A",
+        borderRadius: 99,
+        padding: "2px 8px",
+        fontWeight: 600
+      }
+    }, "\uC7AC\uC81C\uCD9C ", allRows.length, "\uAC74"), st && /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 11,
+        fontWeight: 600,
+        color: st.color,
+        background: st.bg,
+        borderRadius: 99,
+        padding: "2px 8px"
+      }
+    }, st.text), /*#__PURE__*/React.createElement("span", {
+      style: {
+        padding: "3px 10px",
+        borderRadius: 99,
+        fontSize: 11,
+        fontWeight: 700,
+        background: latest ? "#DCFCE7" : "#FEE2E2",
+        color: latest ? "#166534" : "#DC2626"
+      }
+    }, latest ? "✓ 제출완료" : "미제출"))), latest ? /*#__PURE__*/React.createElement("div", {
+      style: {
+        padding: "14px 18px"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr 1fr",
+        gap: 10,
+        marginBottom: 10
+      }
+    }, GROUPS.map((g, i) => /*#__PURE__*/React.createElement("div", {
+      key: g.label,
+      style: {
+        background: g.bg,
+        border: `1px solid ${g.border}`,
+        borderRadius: 8,
+        padding: "10px 12px",
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center"
+      }
+    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 12,
+        fontWeight: 700,
+        color: g.color
+      }
+    }, g.label), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 10,
+        color: "#94A3B8"
+      }
+    }, g.date)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 18,
+        fontWeight: 700,
+        color: g.color
+      }
+    }, latest[`${GK[i]}_count`], /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 11
+      }
+    }, "\uBA85"))))), parseNotes(latest.note).length > 0 && /*#__PURE__*/React.createElement("div", {
+      style: {
+        padding: "8px 12px",
+        background: "#F8FAFC",
+        border: "1px solid #E2E8F0",
+        borderRadius: 8,
+        marginBottom: 8
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 11,
+        fontWeight: 700,
+        color: "#64748B",
+        marginBottom: 6
+      }
+    }, "\uD83D\uDCDD \uBE44\uACE0"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "grid",
+        gridTemplateColumns: "auto 1fr",
+        gap: "3px 12px"
+      }
+    }, parseNotes(latest.note).map((n, i) => [/*#__PURE__*/React.createElement("span", {
+      key: `n${i}`,
+      style: {
+        fontSize: 12,
+        fontWeight: 700,
+        color: "#334155"
+      }
+    }, n.name || "—"), /*#__PURE__*/React.createElement("span", {
+      key: `r${i}`,
+      style: {
+        fontSize: 12,
+        color: "#64748B"
+      }
+    }, n.reason || "—")]))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        justifyContent: "space-between",
+        fontSize: 11,
+        color: "#94A3B8"
+      }
+    }, /*#__PURE__*/React.createElement("span", null, "\uCD5C\uC2E0 \uC81C\uCD9C: ", latest.submitter, " \xB7 ", new Date(latest.submitted_at).toLocaleString("ko-KR")), /*#__PURE__*/React.createElement("button", {
+      onClick: () => handleDelete(latest.id, dept.name),
+      disabled: deleting === latest.id,
+      style: {
+        fontSize: 11,
+        color: "#EF4444",
+        background: "none",
+        border: "1px solid #FECACA",
+        borderRadius: 6,
+        padding: "3px 10px",
+        cursor: "pointer"
+      }
+    }, deleting === latest.id ? "삭제 중..." : "최신 삭제"))) : /*#__PURE__*/React.createElement("div", {
+      style: {
+        padding: "14px 18px",
+        fontSize: 13,
+        color: "#94A3B8"
+      }
+    }, "\uC544\uC9C1 \uC81C\uCD9C\uB418\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4."));
+  })), !loading && !error && activeTab === "names" && /*#__PURE__*/React.createElement("div", null, GROUPS.map((g, gi) => /*#__PURE__*/React.createElement("div", {
+    key: g.label,
+    style: {
+      background: "#fff",
+      border: `1.5px solid ${g.border}`,
+      borderRadius: 12,
+      marginBottom: 16,
+      overflow: "hidden"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: "14px 18px",
+      background: g.bg,
+      borderBottom: `1px solid ${g.border}`
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 15,
+      fontWeight: 700,
+      color: g.color
+    }
+  }, g.label), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: g.color,
+      opacity: 0.8
+    }
+  }, "\uD83D\uDCC5 ", g.date, " \xB7 2\uC77C \uC804\uC77C \uD544\uC218 \uCC38\uC11D")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: "14px 18px"
+    }
+  }, latestByDept.filter(x => x.latest && x.latest[`${GK[gi]}_count`] > 0).map(({
+    dept,
+    latest
+  }) => /*#__PURE__*/React.createElement("div", {
+    key: dept.id,
+    style: {
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      fontWeight: 700,
+      color: "#475569",
+      marginBottom: 6,
+      display: "flex",
+      justifyContent: "space-between"
+    }
+  }, /*#__PURE__*/React.createElement("span", null, dept.name), /*#__PURE__*/React.createElement("span", {
+    style: {
+      background: g.tag,
+      color: g.tagText,
+      borderRadius: 99,
+      fontSize: 11,
+      padding: "2px 8px"
+    }
+  }, latest[`${GK[gi]}_count`], "\uBA85")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexWrap: "wrap",
+      gap: 6
+    }
+  }, (latest[`${GK[gi]}_names`] || "").split("\n").filter(n => n.trim()).map((n, i) => /*#__PURE__*/React.createElement("span", {
+    key: i,
+    style: {
+      background: "#F1F5F9",
+      color: "#334155",
+      borderRadius: 99,
+      fontSize: 12,
+      padding: "3px 10px",
+      border: "1px solid #E2E8F0"
+    }
+  }, n.trim()))))), latestByDept.every(x => !x.latest || !x.latest[`${GK[gi]}_count`]) && /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: "#94A3B8",
+      fontSize: 13
+    }
+  }, "\uBC30\uC815 \uC778\uC6D0\uC774 \uC5C6\uC2B5\uB2C8\uB2E4."), latestByDept.some(x => x.latest && x.latest[`${GK[gi]}_count`] > 0) && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 14,
+      paddingTop: 12,
+      borderTop: "1px solid #E2E8F0",
+      display: "flex",
+      justifyContent: "flex-end",
+      fontSize: 13,
+      fontWeight: 700,
+      color: g.color
+    }
+  }, "\uCD1D ", groupTotals[gi], "\uBA85"))))), !loading && !error && activeTab === "history" && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 13,
-      color: "#4ADE80"
+      color: "#64748B",
+      marginBottom: 12
     }
-  }, "\uACB0\uACFC\uB294 \uAD00\uB9AC\uC790 \uB300\uC2DC\uBCF4\uB4DC\uC5D0\uC11C \uD655\uC778 \uAC00\uB2A5\uD569\uB2C8\uB2E4")), /*#__PURE__*/React.createElement("div", {
+  }, "\uCD1D ", rows.length, "\uAC74 \xB7 \uCD5C\uC2E0\uC21C"), rows.length === 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: "#fff",
+      borderRadius: 12,
+      padding: "40px",
+      textAlign: "center",
+      color: "#94A3B8",
+      fontSize: 13
+    }
+  }, "\uC81C\uCD9C \uB0B4\uC5ED\uC774 \uC5C6\uC2B5\uB2C8\uB2E4."), rows.map((row, i) => {
+    const dept = DEPARTMENTS.find(d => d.id === row.department_id);
+    const st = dept ? getStatus(row, dept) : null;
+    const isLatest = latestByDept.some(x => x.latest?.id === row.id);
+    return /*#__PURE__*/React.createElement("div", {
+      key: row.id,
+      style: {
+        background: "#fff",
+        border: "1.5px solid #E2E8F0",
+        borderRadius: 12,
+        marginBottom: 10,
+        overflow: "hidden"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        padding: "12px 16px",
+        background: "#F8FAFC",
+        borderBottom: "1px solid #E2E8F0",
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        alignItems: "center",
+        gap: 8
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 11,
+        color: "#94A3B8",
+        fontWeight: 600
+      }
+    }, "#", rows.length - i), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 13,
+        fontWeight: 700,
+        color: "#0F172A"
+      }
+    }, row.department_name), isLatest && /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 10,
+        background: "#DCFCE7",
+        color: "#166534",
+        borderRadius: 99,
+        padding: "2px 7px",
+        fontWeight: 700
+      }
+    }, "\uCD5C\uC2E0")), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        alignItems: "center",
+        gap: 8
+      }
+    }, st && /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 11,
+        color: st.color,
+        background: st.bg,
+        borderRadius: 99,
+        padding: "2px 8px",
+        fontWeight: 600
+      }
+    }, st.text), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 11,
+        color: "#94A3B8"
+      }
+    }, new Date(row.submitted_at).toLocaleString("ko-KR")), /*#__PURE__*/React.createElement("button", {
+      onClick: () => handleDelete(row.id, row.department_name),
+      disabled: deleting === row.id,
+      style: {
+        fontSize: 11,
+        color: "#EF4444",
+        background: "none",
+        border: "1px solid #FECACA",
+        borderRadius: 6,
+        padding: "3px 8px",
+        cursor: "pointer"
+      }
+    }, deleting === row.id ? "..." : "삭제"))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        padding: "12px 16px",
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr 1fr",
+        gap: 8
+      }
+    }, GROUPS.map((g, gi) => /*#__PURE__*/React.createElement("div", {
+      key: g.label,
+      style: {
+        background: g.bg,
+        border: `1px solid ${g.border}`,
+        borderRadius: 8,
+        padding: "8px 10px"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        justifyContent: "space-between",
+        marginBottom: 3
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 11,
+        fontWeight: 700,
+        color: g.color
+      }
+    }, g.label), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 11,
+        color: g.tagText,
+        background: g.tag,
+        borderRadius: 99,
+        padding: "1px 6px"
+      }
+    }, row[`${GK[gi]}_count`], "\uBA85")), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 11,
+        color: "#475569",
+        lineHeight: 1.7
+      }
+    }, (row[`${GK[gi]}_names`] || "").split("\n").filter(n => n.trim()).map((n, j) => /*#__PURE__*/React.createElement("div", {
+      key: j
+    }, "\xB7 ", n)), !row[`${GK[gi]}_count`] && /*#__PURE__*/React.createElement("span", {
+      style: {
+        color: "#CBD5E1"
+      }
+    }, "\uBBF8\uBC30\uC815"))))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        padding: "8px 16px",
+        borderTop: "1px solid #E2E8F0",
+        fontSize: 11,
+        color: "#94A3B8",
+        display: "flex",
+        justifyContent: "space-between",
+        flexWrap: "wrap",
+        gap: 4
+      }
+    }, /*#__PURE__*/React.createElement("span", null, "\uC81C\uCD9C\uC790: ", row.submitter), parseNotes(row.note).length > 0 && /*#__PURE__*/React.createElement("span", null, "\uD83D\uDCDD ", parseNotes(row.note).map((n, i) => /*#__PURE__*/React.createElement("span", {
+      key: i
+    }, /*#__PURE__*/React.createElement("strong", null, n.name), n.reason ? `: ${n.reason}` : "", i < parseNotes(row.note).length - 1 ? " · " : "")))));
+  })), /*#__PURE__*/React.createElement("div", {
     style: {
       textAlign: "center",
-      padding: "20px 0 4px",
+      padding: "16px 0 4px",
       fontSize: 11,
       color: "#94A3B8"
     }
-  }, "\uBB38\uC758: \uB2F4\uB2F9\uC790\uC5D0\uAC8C \uC5F0\uB77D\uC8FC\uC138\uC694")));
+  }, "Supabase \xB7 kaon-mentoring")));
+}
+function App() {
+  const [unlocked, setUnlocked] = useState(false);
+  return unlocked ? /*#__PURE__*/React.createElement(Dashboard, {
+    onLock: () => setUnlocked(false)
+  }) : /*#__PURE__*/React.createElement(PasswordGate, {
+    onSuccess: () => setUnlocked(true)
+  });
 }
 ReactDOM.createRoot(document.getElementById("root")).render(/*#__PURE__*/React.createElement(App, null));
   </script>

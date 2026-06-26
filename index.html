@@ -16,13 +16,18 @@
     .card .t { color: #F1F5F9; font-size: 17px; font-weight: 700; margin-bottom: 4px; }
     .card .d { color: #64748B; font-size: 13px; }
     .icon { font-size: 22px; margin-right: 8px; }
+    .group-label { color: #64748B; font-size: 12px; font-weight: 700; letter-spacing: 1px;
+      margin: 22px 2px 10px; text-transform: uppercase; }
+    .group-label:first-of-type { margin-top: 8px; }
     .foot { color: #475569; font-size: 12px; text-align: center; margin-top: 24px; }
   </style>
 </head>
 <body>
   <div class="wrap">
     <h1>📚 교육 그룹 배정 시스템</h1>
-    <p class="sub">RM본부 Group 1·2 교육 참석 배정 · Supabase 연동</p>
+    <p class="sub">교육 참석 그룹 배정 · 제출 및 현황 조회 · Supabase 연동</p>
+
+    <div class="group-label">Group 1 · 2 (RM본부)</div>
 
     <a class="card" href="attendance.html">
       <div class="t"><span class="icon">📝</span>참석 배정 제출 폼</div>
@@ -32,6 +37,18 @@
     <a class="card" href="dashboard.html">
       <div class="t"><span class="icon">📊</span>관리자 대시보드</div>
       <div class="d">제출 현황·명단·이력 조회 (비밀번호 필요)</div>
+    </a>
+
+    <div class="group-label">Group 3 · 4 · 5 (영업·Corporate·PI·경영지원·ESG·PM)</div>
+
+    <a class="card" href="attendance_g345.html">
+      <div class="t"><span class="icon">📝</span>참석 배정 제출 폼</div>
+      <div class="d">부서별 인원을 Group 3 / Group 4 / Group 5로 나누어 제출합니다.</div>
+    </a>
+
+    <a class="card" href="dashboard_g345.html">
+      <div class="t"><span class="icon">📊</span>관리자 대시보드</div>
+      <div class="d">제출 현황·명단·이력 조회 · CSV/Google Sheets 내보내기 (비밀번호 필요)</div>
     </a>
 
     <div class="foot">데이터: Supabase · kaon-mentoring</div>

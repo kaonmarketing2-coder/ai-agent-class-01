@@ -17,8 +17,10 @@ const reactUMD = fs.readFileSync(path.join(path.dirname(req("react/package.json"
 const reactDomUMD = fs.readFileSync(path.join(path.dirname(req("react-dom/package.json")), "umd/react-dom.production.min.js"), "utf8");
 
 const PAGES = [
-  { src: "src/attendance.jsx", out: "attendance.html", title: "교육 참석 그룹 배정 제출" },
-  { src: "src/dashboard.jsx", out: "dashboard.html", title: "교육 배정 현황 대시보드" },
+  { src: "src/attendance.jsx", out: "attendance.html", title: "교육 참석 그룹 배정 제출 (Group 1·2)" },
+  { src: "src/dashboard.jsx", out: "dashboard.html", title: "교육 배정 현황 대시보드 (Group 1·2)" },
+  { src: "src/attendance_g345.jsx", out: "attendance_g345.html", title: "교육 참석 그룹 배정 제출 (Group 3·4·5)" },
+  { src: "src/dashboard_g345.jsx", out: "dashboard_g345.html", title: "교육 배정 현황 대시보드 (Group 3·4·5)" },
 ];
 
 for (const { src, out, title } of PAGES) {
