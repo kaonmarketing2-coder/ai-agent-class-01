@@ -13,7 +13,7 @@
 | `attendance_g345.html` | 참석 배정 제출 폼 — 3·4·5차수 | `training_submissions_g345` |
 | `dashboard_g345.html` | 관리자 대시보드 — 3·4·5차수 (비밀번호 필요) | `training_submissions_g345` |
 
-- 3·4·5차수 대상 부서: 영업본부, Corporate실, PI그룹, 경영지원본부, RM본부(ESG팀), ProjectManage본부
+- 3·4·5차수 대상 부서: 영업본부, Corporate실, PI그룹, 경영지원본부(ESG팀 포함), ProjectManage본부
 - 3·4·5차수 대시보드는 CSV 외에 Google Sheets 내보내기도 지원합니다
   (사용하려면 `src/dashboard_g345.jsx`의 `GOOGLE_CLIENT_ID` 설정 필요).
 

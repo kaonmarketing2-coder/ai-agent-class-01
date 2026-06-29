@@ -4,11 +4,10 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const HEADERS = { "Content-Type":"application/json","apikey":SUPABASE_KEY,"Authorization":`Bearer ${SUPABASE_KEY}` };
 
 const DEPARTMENTS = [
-  { id:"d4", name:"영업본부", sub:"", total:36 },
-  { id:"d5", name:"Corporate실", sub:"피플그룹 · 비전그룹", total:27 },
+  { id:"d4", name:"영업본부", sub:"", total:38 },
+  { id:"d5", name:"Corporate실", sub:"피플그룹 · 비전그룹", total:28 },
   { id:"d6", name:"PI그룹", sub:"", total:8 },
-  { id:"d7", name:"경영지원본부", sub:"재무 · 회계 · IP", total:11 },
-  { id:"d8", name:"RM본부 (ESG팀)", sub:"", total:3 },
+  { id:"d7", name:"경영지원본부", sub:"재무 · 회계 · IP · ESG팀", total:14 },
   { id:"d9", name:"ProjectManage본부", sub:"", total:18 },
 ];
 

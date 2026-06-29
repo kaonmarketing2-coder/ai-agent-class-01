@@ -7,11 +7,10 @@ const GOOGLE_CLIENT_ID = "770804220578-liqpktplntk748tha451cddek97uc3m4.apps.goo
 const HEADERS = { "apikey":SUPABASE_KEY, "Authorization":`Bearer ${SUPABASE_KEY}` };
 
 const DEPARTMENTS = [
-  { id:"d4", name:"영업본부", sub:"", total:36 },
-  { id:"d5", name:"Corporate실", sub:"피플그룹 · 비전그룹", total:27 },
+  { id:"d4", name:"영업본부", sub:"", total:38 },
+  { id:"d5", name:"Corporate실", sub:"피플그룹 · 비전그룹", total:28 },
   { id:"d6", name:"PI그룹", sub:"", total:8 },
-  { id:"d7", name:"경영지원본부", sub:"재무 · 회계 · IP", total:11 },
-  { id:"d8", name:"RM본부 (ESG팀)", sub:"", total:3 },
+  { id:"d7", name:"경영지원본부", sub:"재무 · 회계 · IP · ESG팀", total:14 },
   { id:"d9", name:"ProjectManage본부", sub:"", total:18 },
 ];
 const G3 = { label:"3차수", date:"7/15~7/16", color:"#059669", bg:"#ECFDF5", border:"#A7F3D0", tag:"#D1FAE5", tagText:"#065F46" };
