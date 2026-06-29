@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>교육 배정 현황 대시보드 (Group 1·2)</title>
+  <title>교육 배정 현황 대시보드 (1·2차수)</title>
   <style> body { margin: 0; } </style>
 </head>
 <body>
@@ -340,7 +340,7 @@ const DEPARTMENTS = [{
   total: 28
 }];
 const G1 = {
-  label: "Group 1",
+  label: "1차수",
   date: "7/8~7/9",
   color: "#1D4ED8",
   bg: "#EFF6FF",
@@ -349,7 +349,7 @@ const G1 = {
   tagText: "#1E40AF"
 };
 const G2 = {
-  label: "Group 2",
+  label: "2차수",
   date: "7/13~7/14",
   color: "#7C3AED",
   bg: "#F5F3FF",
@@ -431,7 +431,7 @@ async function deleteSubmission(id) {
   return res.ok;
 }
 function exportCSV(rows) {
-  const header = ["부서명", "제출자", "Group1 인원", "Group1 명단", "Group2 인원", "Group2 명단", "비고", "인원 상태", "제출일시"];
+  const header = ["부서명", "제출자", "1차수 인원", "1차수 명단", "2차수 인원", "2차수 명단", "비고", "인원 상태", "제출일시"];
   const lines = [header.join(","), ...rows.map(r => {
     const total = (r.g1_count || 0) + (r.g2_count || 0);
     const dept = DEPARTMENTS.find(d => d.id === r.department_id);
@@ -509,7 +509,7 @@ function PasswordGate({
       color: "#64748B",
       fontSize: 13
     }
-  }, "\uAD50\uC721 \uBC30\uC815 \uD604\uD669 \uC870\uD68C \xB7 Group 1+2")), /*#__PURE__*/React.createElement("div", {
+  }, "\uAD50\uC721 \uBC30\uC815 \uD604\uD669 \uC870\uD68C \xB7 1\xB72\uCC28\uC218")), /*#__PURE__*/React.createElement("div", {
     style: {
       marginBottom: 16
     }
@@ -659,7 +659,7 @@ function Dashboard({
       letterSpacing: 1,
       marginBottom: 8
     }
-  }, "ADMIN \xB7 GROUP 1\xB72"), /*#__PURE__*/React.createElement("h1", {
+  }, "ADMIN \xB7 1\xB72\uCC28\uC218"), /*#__PURE__*/React.createElement("h1", {
     style: {
       margin: "0 0 4px",
       fontSize: 20,
@@ -729,12 +729,12 @@ function Dashboard({
     sub: "건",
     color: "#FB923C"
   }, {
-    label: "Group 1 배정",
+    label: "1차수 배정",
     value: totalG1,
     sub: "명",
     color: "#93C5FD"
   }, {
-    label: "Group 2 배정",
+    label: "2차수 배정",
     value: totalG2,
     sub: "명",
     color: "#C4B5FD"

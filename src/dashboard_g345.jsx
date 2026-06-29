@@ -14,9 +14,9 @@ const DEPARTMENTS = [
   { id:"d8", name:"RM본부 (ESG팀)", sub:"", total:3 },
   { id:"d9", name:"ProjectManage본부", sub:"", total:18 },
 ];
-const G3 = { label:"Group 3", date:"7/15~7/16", color:"#059669", bg:"#ECFDF5", border:"#A7F3D0", tag:"#D1FAE5", tagText:"#065F46" };
-const G4 = { label:"Group 4", date:"7/20~7/21", color:"#D97706", bg:"#FFFBEB", border:"#FDE68A", tag:"#FEF3C7", tagText:"#92400E" };
-const G5 = { label:"Group 5", date:"7/22~7/23", color:"#DC2626", bg:"#FEF2F2", border:"#FECACA", tag:"#FEE2E2", tagText:"#991B1B" };
+const G3 = { label:"3차수", date:"7/15~7/16", color:"#059669", bg:"#ECFDF5", border:"#A7F3D0", tag:"#D1FAE5", tagText:"#065F46" };
+const G4 = { label:"4차수", date:"7/20~7/21", color:"#D97706", bg:"#FFFBEB", border:"#FDE68A", tag:"#FEF3C7", tagText:"#92400E" };
+const G5 = { label:"5차수", date:"7/22~7/23", color:"#DC2626", bg:"#FEF2F2", border:"#FECACA", tag:"#FEE2E2", tagText:"#991B1B" };
 const GROUPS = [G3, G4, G5];
 const GK = ["g3","g4","g5"];
 
@@ -31,7 +31,7 @@ async function deleteRow(id) {
 }
 
 function exportCSV(rows) {
-  const h = ["부서명","제출자","Group3 인원","Group3 명단","Group4 인원","Group4 명단","Group5 인원","Group5 명단","비고","인원상태","제출일시"];
+  const h = ["부서명","제출자","3차수 인원","3차수 명단","4차수 인원","4차수 명단","5차수 인원","5차수 명단","비고","인원상태","제출일시"];
   const lines = [h.join(","), ...rows.map(r=>{
     const dept=DEPARTMENTS.find(d=>d.id===r.department_id);
     const tot=GK.reduce((s,k)=>s+(r[`${k}_count`]||0),0); const diff=dept?tot-dept.total:0;
@@ -42,7 +42,7 @@ function exportCSV(rows) {
       `"${new Date(r.submitted_at).toLocaleString("ko-KR")}"`].join(",");
   })];
   const blob=new Blob(["\uFEFF"+lines.join("\n")],{type:"text/csv;charset=utf-8;"});
-  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="교육배정현황_G345.csv"; a.click();
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="교육배정현황_3-4-5차수.csv"; a.click();
 }
 
 async function exportToGoogleSheets(rows) {
@@ -59,13 +59,13 @@ async function exportToGoogleSheets(rows) {
       callback:r=>r.error?rej(new Error(r.error)):res(r.access_token),
     }).requestAccessToken();
   });
-  const title=`교육배정현황_G3+4+5_${new Date().toLocaleDateString("ko-KR")}`;
+  const title=`교육배정현황_3-4-5차수_${new Date().toLocaleDateString("ko-KR")}`;
   const cr=await fetch("https://sheets.googleapis.com/v4/spreadsheets",{
     method:"POST",headers:{Authorization:`Bearer ${token}`,"Content-Type":"application/json"},
     body:JSON.stringify({properties:{title}}),
   });
   const {spreadsheetId}=await cr.json();
-  const header=["부서명","제출자","Group3 인원","Group3 명단","Group4 인원","Group4 명단","Group5 인원","Group5 명단","비고","인원상태","제출일시"];
+  const header=["부서명","제출자","3차수 인원","3차수 명단","4차수 인원","4차수 명단","5차수 인원","5차수 명단","비고","인원상태","제출일시"];
   const values=[header,...rows.map(r=>{
     const dept=DEPARTMENTS.find(d=>d.id===r.department_id);
     const tot=GK.reduce((s,k)=>s+(r[`${k}_count`]||0),0); const diff=dept?tot-dept.total:0;
@@ -92,7 +92,7 @@ function PasswordGate({onSuccess}) {
         <div style={{textAlign:"center",marginBottom:32}}>
           <div style={{fontSize:36,marginBottom:12}}>🔒</div>
           <h2 style={{margin:"0 0 6px",color:"#F1F5F9",fontSize:20,fontWeight:700}}>관리자 대시보드</h2>
-          <p style={{margin:0,color:"#64748B",fontSize:13}}>Group 3+4+5 교육 배정 현황</p>
+          <p style={{margin:0,color:"#64748B",fontSize:13}}>3·4·5차수 교육 배정 현황</p>
         </div>
         <div style={{marginBottom:16}}>
           <label style={{fontSize:12,fontWeight:600,color:"#94A3B8",display:"block",marginBottom:8}}>비밀번호</label>
@@ -165,7 +165,7 @@ function Dashboard({onLock}) {
         <div style={{background:"#0F172A",borderRadius:16,padding:"24px 28px",marginBottom:20,color:"#fff"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:12}}>
             <div>
-              <div style={{fontSize:11,color:"#94A3B8",letterSpacing:1,marginBottom:8}}>ADMIN · GROUP 3·4·5</div>
+              <div style={{fontSize:11,color:"#94A3B8",letterSpacing:1,marginBottom:8}}>ADMIN · 3·4·5차수</div>
               <h1 style={{margin:"0 0 4px",fontSize:20,fontWeight:700,color:"#F1F5F9"}}>교육 배정 현황 대시보드</h1>
               <p style={{margin:0,fontSize:12,color:"#64748B"}}>중복 제출 모두 기록 · 최신 기준 집계</p>
             </div>
@@ -181,7 +181,7 @@ function Dashboard({onLock}) {
 
           <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:8,marginTop:20}}>
             {[{label:"제출 완료",value:`${submittedCount}/${DEPARTMENTS.length}`,sub:"부서",color:"#34D399"},{label:"전체 제출",value:rows.length,sub:"건",color:"#FB923C"},
-              {label:"Group 3",value:groupTotals[0],sub:"명",color:G3.color},{label:"Group 4",value:groupTotals[1],sub:"명",color:G4.color},{label:"Group 5",value:groupTotals[2],sub:"명",color:G5.color}
+              {label:"3차수",value:groupTotals[0],sub:"명",color:G3.color},{label:"4차수",value:groupTotals[1],sub:"명",color:G4.color},{label:"5차수",value:groupTotals[2],sub:"명",color:G5.color}
             ].map(c=>(
               <div key={c.label} style={{background:"#1E293B",borderRadius:10,padding:"10px 12px"}}>
                 <div style={{fontSize:10,color:"#64748B",marginBottom:4}}>{c.label}</div>

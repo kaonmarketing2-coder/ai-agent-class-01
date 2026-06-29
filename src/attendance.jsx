@@ -15,8 +15,8 @@ const DEPARTMENTS = [
   { id: "d3", name: "RM본부/품질혁신그룹", sub: "CS · 품질관리 · QA · 제조기술 · 자동화솔루션", total: 28 },
 ];
 
-const G1 = { label: "Group 1", date: "7/8(화) ~ 7/9(수)", color: "#1D4ED8", bg: "#EFF6FF", border: "#BFDBFE", tag: "#DBEAFE", tagText: "#1E40AF" };
-const G2 = { label: "Group 2", date: "7/13(월) ~ 7/14(화)", color: "#7C3AED", bg: "#F5F3FF", border: "#DDD6FE", tag: "#EDE9FE", tagText: "#5B21B6" };
+const G1 = { label: "1차수", date: "7/8(화) ~ 7/9(수)", color: "#1D4ED8", bg: "#EFF6FF", border: "#BFDBFE", tag: "#DBEAFE", tagText: "#1E40AF" };
+const G2 = { label: "2차수", date: "7/13(월) ~ 7/14(화)", color: "#7C3AED", bg: "#F5F3FF", border: "#DDD6FE", tag: "#EDE9FE", tagText: "#5B21B6" };
 
 // ── 비고: 이름/사유 구조 ──────────────────────────────
 // 저장은 JSON 문자열로, 기존 plain text도 역호환 파싱
@@ -203,10 +203,10 @@ function DeptForm({ dept, data, onChange, onSubmitSuccess, isSubmitted, onEditRe
 
           <div style={{ background: "#FFFBEB", border: "1px solid #FDE68A", borderRadius: 8,
             padding: "10px 14px", marginBottom: 18, fontSize: 12, color: "#92400E" }}>
-            💡 배정된 그룹의 교육은 <strong>2일 전일 필수 참석</strong>입니다. 이름을 한 줄에 한 명씩 입력해주세요.
+            💡 배정된 차수의 교육은 <strong>2일 전일 필수 참석</strong>입니다. 이름을 한 줄에 한 명씩 입력해주세요.
           </div>
 
-          {/* Group 1 / Group 2 입력 */}
+          {/* 1차수 / 2차수 입력 */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
             {[{ g: G1, key: "g1Names", count: g1Count }, { g: G2, key: "g2Names", count: g2Count }].map(({ g, key, count }) => (
               <div key={g.label} style={{ border: `1.5px solid ${g.border}`, borderRadius: 10, overflow: "hidden" }}>
@@ -326,13 +326,13 @@ function App() {
         <div style={{ background: "#0F172A", borderRadius: 16, padding: "28px 32px", marginBottom: 20, color: "#fff" }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#1E293B",
             borderRadius: 99, padding: "4px 12px", fontSize: 11, color: "#94A3B8", marginBottom: 14, letterSpacing: 1 }}>
-            GROUP 1 · 2 대상
+            1 · 2차수 대상
           </div>
-          <h1 style={{ margin: "0 0 8px", fontSize: 22, fontWeight: 700, color: "#F1F5F9" }}>교육 참석 그룹 배정 제출</h1>
+          <h1 style={{ margin: "0 0 8px", fontSize: 22, fontWeight: 700, color: "#F1F5F9" }}>교육 참석 차수 배정 제출</h1>
           <p style={{ margin: "0 0 20px", fontSize: 13, color: "#94A3B8", lineHeight: 1.7 }}>
-            부서 인원을 <strong style={{ color: "#93C5FD" }}>Group 1 (7/8~7/9)</strong> 또는{" "}
-            <strong style={{ color: "#C4B5FD" }}>Group 2 (7/13~7/14)</strong>로 나누어 배정해주세요.<br />
-            배정된 그룹의 교육은 <strong style={{ color: "#FCA5A5" }}>2일 전일 필수 참석</strong>입니다.
+            부서 인원을 <strong style={{ color: "#93C5FD" }}>1차수 (7/8~7/9)</strong> 또는{" "}
+            <strong style={{ color: "#C4B5FD" }}>2차수 (7/13~7/14)</strong>로 나누어 배정해주세요.<br />
+            배정된 차수의 교육은 <strong style={{ color: "#FCA5A5" }}>2일 전일 필수 참석</strong>입니다.
           </p>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 20 }}>
             {[G1, G2].map(g => (

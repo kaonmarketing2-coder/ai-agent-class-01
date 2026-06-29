@@ -1,4 +1,4 @@
-# 교육 그룹 배정 시스템
+# 교육 차수 배정 시스템
 
 교육 참석 그룹 배정을 위한 웹 페이지입니다. 원본 React(JSX) 컴포넌트를
 외부 의존성 없이 동작하는 self-contained HTML로 변환했습니다. (React 인라인 포함)
@@ -8,13 +8,13 @@
 | 파일 | 설명 | Supabase 테이블 |
 |------|------|------|
 | `index.html` | 랜딩 페이지 (전체 메뉴) | — |
-| `attendance.html` | 참석 배정 제출 폼 — Group 1·2 (RM본부) | `training_submissions` |
-| `dashboard.html` | 관리자 대시보드 — Group 1·2 (비밀번호 필요) | `training_submissions` |
-| `attendance_g345.html` | 참석 배정 제출 폼 — Group 3·4·5 | `training_submissions_g345` |
-| `dashboard_g345.html` | 관리자 대시보드 — Group 3·4·5 (비밀번호 필요) | `training_submissions_g345` |
+| `attendance.html` | 참석 배정 제출 폼 — 1·2차수 (RM본부) | `training_submissions` |
+| `dashboard.html` | 관리자 대시보드 — 1·2차수 (비밀번호 필요) | `training_submissions` |
+| `attendance_g345.html` | 참석 배정 제출 폼 — 3·4·5차수 | `training_submissions_g345` |
+| `dashboard_g345.html` | 관리자 대시보드 — 3·4·5차수 (비밀번호 필요) | `training_submissions_g345` |
 
-- Group 3·4·5 대상 부서: 영업본부, Corporate실, PI그룹, 경영지원본부, RM본부(ESG팀), ProjectManage본부
-- Group 3·4·5 대시보드는 CSV 외에 Google Sheets 내보내기도 지원합니다
+- 3·4·5차수 대상 부서: 영업본부, Corporate실, PI그룹, 경영지원본부, RM본부(ESG팀), ProjectManage본부
+- 3·4·5차수 대시보드는 CSV 외에 Google Sheets 내보내기도 지원합니다
   (사용하려면 `src/dashboard_g345.jsx`의 `GOOGLE_CLIENT_ID` 설정 필요).
 
 ## HTML로 보는 방법 (GitHub Pages)

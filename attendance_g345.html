@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>교육 참석 그룹 배정 제출 (Group 3·4·5)</title>
+  <title>교육 참석 차수 배정 제출 (3·4·5차수)</title>
   <style> body { margin: 0; } </style>
 </head>
 <body>
@@ -351,7 +351,7 @@ const DEPARTMENTS = [{
   total: 18
 }];
 const G3 = {
-  label: "Group 3",
+  label: "3차수",
   date: "7/15(화) ~ 7/16(수)",
   color: "#059669",
   bg: "#ECFDF5",
@@ -360,7 +360,7 @@ const G3 = {
   tagText: "#065F46"
 };
 const G4 = {
-  label: "Group 4",
+  label: "4차수",
   date: "7/20(일) ~ 7/21(월)",
   color: "#D97706",
   bg: "#FFFBEB",
@@ -369,7 +369,7 @@ const G4 = {
   tagText: "#92400E"
 };
 const G5 = {
-  label: "Group 5",
+  label: "5차수",
   date: "7/22(화) ~ 7/23(수)",
   color: "#DC2626",
   bg: "#FEF2F2",
@@ -499,7 +499,7 @@ function NoteTable({
     onBlur: e => e.target.style.borderColor = "#E2E8F0"
   }), /*#__PURE__*/React.createElement("input", {
     type: "text",
-    placeholder: "\uC608: 7/15 \uC678\uBD80 \uCD9C\uC7A5\uC73C\uB85C Group 4 \uBCC0\uACBD \uC694\uCCAD",
+    placeholder: "\uC608: 7/15 \uC678\uBD80 \uCD9C\uC7A5\uC73C\uB85C 4\uCC28\uC218 \uBCC0\uACBD \uC694\uCCAD",
     value: row.reason,
     onChange: e => update(row.id, "reason", e.target.value),
     style: inp,
@@ -833,7 +833,7 @@ function DeptForm({
       fontSize: 12,
       color: "#92400E"
     }
-  }, "\uD83D\uDCA1 \uBC30\uC815\uB41C \uADF8\uB8F9\uC758 \uAD50\uC721\uC740 ", /*#__PURE__*/React.createElement("strong", null, "2\uC77C \uC804\uC77C \uD544\uC218 \uCC38\uC11D"), "\uC785\uB2C8\uB2E4. \uC774\uB984\uC744 \uD55C \uC904\uC5D0 \uD55C \uBA85\uC529 \uC785\uB825\uD574\uC8FC\uC138\uC694."), /*#__PURE__*/React.createElement("div", {
+  }, "\uD83D\uDCA1 \uBC30\uC815\uB41C \uCC28\uC218\uC758 \uAD50\uC721\uC740 ", /*#__PURE__*/React.createElement("strong", null, "2\uC77C \uC804\uC77C \uD544\uC218 \uCC38\uC11D"), "\uC785\uB2C8\uB2E4. \uC774\uB984\uC744 \uD55C \uC904\uC5D0 \uD55C \uBA85\uC529 \uC785\uB825\uD574\uC8FC\uC138\uC694."), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "grid",
       gridTemplateColumns: "1fr 1fr 1fr",
@@ -1033,21 +1033,21 @@ function App() {
       marginBottom: 14,
       letterSpacing: 1
     }
-  }, "GROUP 3 \xB7 4 \xB7 5 \uB300\uC0C1"), /*#__PURE__*/React.createElement("h1", {
+  }, "3 \xB7 4 \xB7 5\uCC28\uC218 \uB300\uC0C1"), /*#__PURE__*/React.createElement("h1", {
     style: {
       margin: "0 0 8px",
       fontSize: 22,
       fontWeight: 700,
       color: "#F1F5F9"
     }
-  }, "\uAD50\uC721 \uCC38\uC11D \uADF8\uB8F9 \uBC30\uC815 \uC81C\uCD9C"), /*#__PURE__*/React.createElement("p", {
+  }, "\uAD50\uC721 \uCC38\uC11D \uCC28\uC218 \uBC30\uC815 \uC81C\uCD9C"), /*#__PURE__*/React.createElement("p", {
     style: {
       margin: "0 0 20px",
       fontSize: 13,
       color: "#94A3B8",
       lineHeight: 1.7
     }
-  }, "\uBD80\uC11C \uC778\uC6D0\uC744 \uC544\uB798 \uC138 \uADF8\uB8F9 \uC911 \uD558\uB098\uC5D0 \uBC30\uC815\uD574\uC8FC\uC138\uC694. \uBC30\uC815\uB41C \uADF8\uB8F9\uC758 \uAD50\uC721\uC740 ", /*#__PURE__*/React.createElement("strong", {
+  }, "\uBD80\uC11C \uC778\uC6D0\uC744 \uC544\uB798 \uC138 \uCC28\uC218 \uC911 \uD558\uB098\uC5D0 \uBC30\uC815\uD574\uC8FC\uC138\uC694. \uBC30\uC815\uB41C \uCC28\uC218\uC758 \uAD50\uC721\uC740 ", /*#__PURE__*/React.createElement("strong", {
     style: {
       color: "#FCA5A5"
     }

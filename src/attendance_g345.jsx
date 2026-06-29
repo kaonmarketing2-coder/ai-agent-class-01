@@ -12,9 +12,9 @@ const DEPARTMENTS = [
   { id:"d9", name:"ProjectManage본부", sub:"", total:18 },
 ];
 
-const G3 = { label:"Group 3", date:"7/15(화) ~ 7/16(수)", color:"#059669", bg:"#ECFDF5", border:"#A7F3D0", tag:"#D1FAE5", tagText:"#065F46" };
-const G4 = { label:"Group 4", date:"7/20(일) ~ 7/21(월)", color:"#D97706", bg:"#FFFBEB", border:"#FDE68A", tag:"#FEF3C7", tagText:"#92400E" };
-const G5 = { label:"Group 5", date:"7/22(화) ~ 7/23(수)", color:"#DC2626", bg:"#FEF2F2", border:"#FECACA", tag:"#FEE2E2", tagText:"#991B1B" };
+const G3 = { label:"3차수", date:"7/15(화) ~ 7/16(수)", color:"#059669", bg:"#ECFDF5", border:"#A7F3D0", tag:"#D1FAE5", tagText:"#065F46" };
+const G4 = { label:"4차수", date:"7/20(일) ~ 7/21(월)", color:"#D97706", bg:"#FFFBEB", border:"#FDE68A", tag:"#FEF3C7", tagText:"#92400E" };
+const G5 = { label:"5차수", date:"7/22(화) ~ 7/23(수)", color:"#DC2626", bg:"#FEF2F2", border:"#FECACA", tag:"#FEE2E2", tagText:"#991B1B" };
 const GROUPS = [G3, G4, G5];
 const GROUP_KEYS = ["g3Names","g4Names","g5Names"];
 
@@ -58,7 +58,7 @@ function NoteTable({ items, onChange }) {
           <div key={row.id} style={{display:"grid",gridTemplateColumns:"1fr 2fr 32px",gap:6,alignItems:"center"}}>
             <input type="text" placeholder="홍길동" value={row.name} onChange={e=>update(row.id,"name",e.target.value)} style={inp}
               onFocus={e=>e.target.style.borderColor="#94A3B8"} onBlur={e=>e.target.style.borderColor="#E2E8F0"}/>
-            <input type="text" placeholder="예: 7/15 외부 출장으로 Group 4 변경 요청" value={row.reason} onChange={e=>update(row.id,"reason",e.target.value)} style={inp}
+            <input type="text" placeholder="예: 7/15 외부 출장으로 4차수 변경 요청" value={row.reason} onChange={e=>update(row.id,"reason",e.target.value)} style={inp}
               onFocus={e=>e.target.style.borderColor="#94A3B8"} onBlur={e=>e.target.style.borderColor="#E2E8F0"}/>
             <button onClick={()=>remove(row.id)} style={{width:32,height:32,borderRadius:6,border:"1px solid #FECACA",background:"#FEF2F2",color:"#EF4444",fontSize:16,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>−</button>
           </div>
@@ -160,10 +160,10 @@ function DeptForm({ dept, data, onChange, onSubmitSuccess, isSubmitted, onEditRe
               style={{width:"100%",boxSizing:"border-box",border:"1.5px solid #E2E8F0",borderRadius:8,padding:"10px 12px",fontSize:13,outline:"none",color:"#1E293B",fontFamily:"inherit"}}/>
           </div>
           <div style={{background:"#FFFBEB",border:"1px solid #FDE68A",borderRadius:8,padding:"10px 14px",marginBottom:18,fontSize:12,color:"#92400E"}}>
-            💡 배정된 그룹의 교육은 <strong>2일 전일 필수 참석</strong>입니다. 이름을 한 줄에 한 명씩 입력해주세요.
+            💡 배정된 차수의 교육은 <strong>2일 전일 필수 참석</strong>입니다. 이름을 한 줄에 한 명씩 입력해주세요.
           </div>
 
-          {/* 3개 그룹 입력 */}
+          {/* 3개 차수 입력 */}
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:16}}>
             {GROUPS.map((g,i)=>(
               <div key={g.label} style={{border:`1.5px solid ${g.border}`,borderRadius:10,overflow:"hidden"}}>
@@ -229,11 +229,11 @@ function App() {
       <div style={{maxWidth:820,margin:"0 auto"}}>
         <div style={{background:"#0F172A",borderRadius:16,padding:"28px 32px",marginBottom:20,color:"#fff"}}>
           <div style={{display:"inline-flex",alignItems:"center",background:"#1E293B",borderRadius:99,padding:"4px 12px",fontSize:11,color:"#94A3B8",marginBottom:14,letterSpacing:1}}>
-            GROUP 3 · 4 · 5 대상
+            3 · 4 · 5차수 대상
           </div>
-          <h1 style={{margin:"0 0 8px",fontSize:22,fontWeight:700,color:"#F1F5F9"}}>교육 참석 그룹 배정 제출</h1>
+          <h1 style={{margin:"0 0 8px",fontSize:22,fontWeight:700,color:"#F1F5F9"}}>교육 참석 차수 배정 제출</h1>
           <p style={{margin:"0 0 20px",fontSize:13,color:"#94A3B8",lineHeight:1.7}}>
-            부서 인원을 아래 세 그룹 중 하나에 배정해주세요. 배정된 그룹의 교육은 <strong style={{color:"#FCA5A5"}}>2일 전일 필수 참석</strong>입니다.
+            부서 인원을 아래 세 차수 중 하나에 배정해주세요. 배정된 차수의 교육은 <strong style={{color:"#FCA5A5"}}>2일 전일 필수 참석</strong>입니다.
           </p>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:20}}>
             {GROUPS.map(g=>(

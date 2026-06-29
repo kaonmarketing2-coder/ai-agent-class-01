@@ -17,8 +17,8 @@ const DEPARTMENTS = [
   { id: "d3", name: "RM본부/품질혁신그룹", sub: "CS·품질관리·QA·제조기술·자동화솔루션", total: 28 },
 ];
 
-const G1 = { label: "Group 1", date: "7/8~7/9", color: "#1D4ED8", bg: "#EFF6FF", border: "#BFDBFE", tag: "#DBEAFE", tagText: "#1E40AF" };
-const G2 = { label: "Group 2", date: "7/13~7/14", color: "#7C3AED", bg: "#F5F3FF", border: "#DDD6FE", tag: "#EDE9FE", tagText: "#5B21B6" };
+const G1 = { label: "1차수", date: "7/8~7/9", color: "#1D4ED8", bg: "#EFF6FF", border: "#BFDBFE", tag: "#DBEAFE", tagText: "#1E40AF" };
+const G2 = { label: "2차수", date: "7/13~7/14", color: "#7C3AED", bg: "#F5F3FF", border: "#DDD6FE", tag: "#EDE9FE", tagText: "#5B21B6" };
 
 // ── 비고: 이름/사유 구조 ──────────────────────────────
 // JSON 문자열로 저장됨. 기존 plain text도 역호환 파싱.
@@ -77,7 +77,7 @@ async function deleteSubmission(id) {
 }
 
 function exportCSV(rows) {
-  const header = ["부서명", "제출자", "Group1 인원", "Group1 명단", "Group2 인원", "Group2 명단", "비고", "인원 상태", "제출일시"];
+  const header = ["부서명", "제출자", "1차수 인원", "1차수 명단", "2차수 인원", "2차수 명단", "비고", "인원 상태", "제출일시"];
   const lines = [
     header.join(","),
     ...rows.map(r => {
@@ -131,7 +131,7 @@ function PasswordGate({ onSuccess }) {
         <div style={{ textAlign: "center", marginBottom: 32 }}>
           <div style={{ fontSize: 36, marginBottom: 12 }}>🔒</div>
           <h2 style={{ margin: "0 0 6px", color: "#F1F5F9", fontSize: 20, fontWeight: 700 }}>관리자 대시보드</h2>
-          <p style={{ margin: 0, color: "#64748B", fontSize: 13 }}>교육 배정 현황 조회 · Group 1+2</p>
+          <p style={{ margin: 0, color: "#64748B", fontSize: 13 }}>교육 배정 현황 조회 · 1·2차수</p>
         </div>
 
         <div style={{ marginBottom: 16 }}>
@@ -218,7 +218,7 @@ function Dashboard({ onLock }) {
         <div style={{ background: "#0F172A", borderRadius: 16, padding: "24px 28px", marginBottom: 20, color: "#fff" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 12 }}>
             <div>
-              <div style={{ fontSize: 11, color: "#94A3B8", letterSpacing: 1, marginBottom: 8 }}>ADMIN · GROUP 1·2</div>
+              <div style={{ fontSize: 11, color: "#94A3B8", letterSpacing: 1, marginBottom: 8 }}>ADMIN · 1·2차수</div>
               <h1 style={{ margin: "0 0 4px", fontSize: 20, fontWeight: 700, color: "#F1F5F9" }}>교육 배정 현황 대시보드</h1>
               <p style={{ margin: 0, fontSize: 12, color: "#64748B" }}>전체 제출 이력 포함 · 중복 제출 모두 기록</p>
             </div>
@@ -246,8 +246,8 @@ function Dashboard({ onLock }) {
             {[
               { label: "제출 완료", value: `${submittedCount}/${DEPARTMENTS.length}`, sub: "부서", color: "#38BDF8" },
               { label: "전체 제출 수", value: rows.length, sub: "건", color: "#FB923C" },
-              { label: "Group 1 배정", value: totalG1, sub: "명", color: "#93C5FD" },
-              { label: "Group 2 배정", value: totalG2, sub: "명", color: "#C4B5FD" },
+              { label: "1차수 배정", value: totalG1, sub: "명", color: "#93C5FD" },
+              { label: "2차수 배정", value: totalG2, sub: "명", color: "#C4B5FD" },
             ].map(card => (
               <div key={card.label} style={{ background: "#1E293B", borderRadius: 10, padding: "12px 14px" }}>
                 <div style={{ fontSize: 11, color: "#64748B", marginBottom: 4 }}>{card.label}</div>
