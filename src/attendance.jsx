@@ -65,6 +65,17 @@ async function insertSubmission(dept, data) {
   return result[0]?.id;
 }
 
+// 해당 부서의 가장 최근 제출 1건 조회
+async function fetchLatestSubmission(deptId) {
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/training_submissions?department_id=eq.${deptId}&select=*&order=submitted_at.desc&limit=1`,
+    { headers: HEADERS }
+  );
+  if (!res.ok) throw new Error("불러오기 실패. 잠시 후 다시 시도해주세요.");
+  const rows = await res.json();
+  return rows[0] || null;
+}
+
 function NameInput({ value, onChange, placeholder, color }) {
   return (
     <textarea value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} rows={4}
@@ -77,9 +88,11 @@ function NameInput({ value, onChange, placeholder, color }) {
   );
 }
 
-function DeptForm({ dept, data, onChange, onSubmitSuccess, isSubmitted, onEditRequest }) {
+function DeptForm({ dept, data, onChange, onLoad, onSubmitSuccess, isSubmitted, onEditRequest }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [loadingPrev, setLoadingPrev] = useState(false);
+  const [loadMsg, setLoadMsg] = useState(null);
 
   const g1Count = data.g1Names.split("\n").filter(n => n.trim()).length;
   const g2Count = data.g2Names.split("\n").filter(n => n.trim()).length;
@@ -95,6 +108,32 @@ function DeptForm({ dept, data, onChange, onSubmitSuccess, isSubmitted, onEditRe
   const onNoteChange = (idx, key, val) => setNoteItems(noteItems.map((it, i) => i === idx ? { ...it, [key]: val } : it));
   const onNoteAdd = () => setNoteItems([...noteItems, { name: "", reason: "" }]);
   const onNoteRemove = idx => setNoteItems(noteItems.filter((_, i) => i !== idx));
+
+  const handleLoadLatest = async () => {
+    if (loadingPrev) return;
+    const hasInput = data.submitter.trim() || data.g1Names.trim() || data.g2Names.trim() || noteItems.length;
+    if (hasInput && !window.confirm("현재 입력한 내용을 지우고 최근 제출 내역을 불러올까요?")) return;
+    setLoadingPrev(true);
+    setLoadMsg(null);
+    try {
+      const row = await fetchLatestSubmission(dept.id);
+      if (!row) {
+        setLoadMsg({ ok: false, text: "이전 제출 내역이 없습니다." });
+        return;
+      }
+      onLoad({
+        submitter: row.submitter || "",
+        g1Names: row.g1_names || "",
+        g2Names: row.g2_names || "",
+        noteItems: parseNote(row.note),
+      });
+      setLoadMsg({ ok: true, text: `${new Date(row.submitted_at).toLocaleString("ko-KR")} 제출 내역을 불러왔습니다.` });
+    } catch (e) {
+      setLoadMsg({ ok: false, text: e.message });
+    } finally {
+      setLoadingPrev(false);
+    }
+  };
 
   const handleSubmit = async () => {
     if (!canSubmit || loading) return;
@@ -190,6 +229,21 @@ function DeptForm({ dept, data, onChange, onSubmitSuccess, isSubmitted, onEditRe
         </div>
       ) : (
         <div style={{ padding: "20px" }}>
+          {/* 최근 제출 불러오기 */}
+          <div style={{ marginBottom: 18 }}>
+            <button onClick={handleLoadLatest} disabled={loadingPrev}
+              style={{ width: "100%", padding: "10px", border: "1.5px solid #CBD5E1", borderRadius: 8,
+                background: "#F8FAFC", color: "#475569", fontSize: 13, fontWeight: 600,
+                cursor: loadingPrev ? "wait" : "pointer", fontFamily: "inherit" }}>
+              {loadingPrev ? "불러오는 중..." : "↻ 최근 제출 내역 불러오기"}
+            </button>
+            {loadMsg && (
+              <div style={{ marginTop: 8, fontSize: 12, color: loadMsg.ok ? "#16A34A" : "#94A3B8" }}>
+                {loadMsg.ok ? "✓ " : "ℹ️ "}{loadMsg.text}
+              </div>
+            )}
+          </div>
+
           {/* 제출자 */}
           <div style={{ marginBottom: 18 }}>
             <label style={{ fontSize: 12, fontWeight: 700, color: "#475569", display: "block", marginBottom: 6 }}>
@@ -314,6 +368,9 @@ function App() {
   const update = (deptId, field, value) =>
     setFormData(prev => ({ ...prev, [deptId]: { ...prev[deptId], [field]: value } }));
 
+  const loadDept = (deptId, deptData) =>
+    setFormData(prev => ({ ...prev, [deptId]: deptData }));
+
   const submittedCount = DEPARTMENTS.filter(d => submittedSet[d.id]).length;
   const progress = Math.round((submittedCount / DEPARTMENTS.length) * 100);
 
@@ -354,6 +411,7 @@ function App() {
         {DEPARTMENTS.map(dept => (
           <DeptForm key={dept.id} dept={dept} data={formData[dept.id]}
             onChange={(field, value) => update(dept.id, field, value)}
+            onLoad={deptData => loadDept(dept.id, deptData)}
             onSubmitSuccess={() => setSubmittedSet(prev => ({ ...prev, [dept.id]: true }))}
             isSubmitted={!!submittedSet[dept.id]}
             onEditRequest={() => setSubmittedSet(prev => { const n = { ...prev }; delete n[dept.id]; return n; })}
