@@ -1,4 +1,4 @@
-const { useState } = React;
+const { useState, useEffect } = React;
 const SUPABASE_URL = "https://mrdmywosqzaqukdfvbzv.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1yZG15d29zcXphcXVrZGZ2Ynp2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5NzIzNTksImV4cCI6MjA4OTU0ODM1OX0.D2PKVx9cqyAg-qIpKdtUX9z9AwdjDwNgo6Nsyy4vdNM";
 const HEADERS = { "Content-Type":"application/json","apikey":SUPABASE_KEY,"Authorization":`Bearer ${SUPABASE_KEY}` };
@@ -43,6 +43,16 @@ async function fetchLatestSubmission(deptId) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/training_submissions_g345?department_id=eq.${deptId}&select=*&order=submitted_at.desc&limit=1`, { headers:HEADERS });
   if(!res.ok) throw new Error("불러오기 실패. 잠시 후 다시 시도해주세요.");
   return (await res.json())[0] || null;
+}
+
+// 전체 제출 중 부서별 최신 1건 (페이지 접속 시 현황 반영용)
+async function fetchLatestByDept() {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/training_submissions_g345?select=*&order=submitted_at.desc`, { headers:HEADERS });
+  if(!res.ok) throw new Error("불러오기 실패");
+  const rows = await res.json();
+  const byDept = {};
+  for (const r of rows) if (!byDept[r.department_id]) byDept[r.department_id] = r;
+  return byDept;
 }
 
 function NoteTable({ items, onChange }) {
@@ -261,6 +271,32 @@ function App() {
   const [submittedSet, setSubmittedSet] = useState({});
   const update = (id,field,value) => setFormData(p=>({...p,[id]:{...p[id],[field]:value}}));
   const loadDept = (id,deptData) => setFormData(p=>({...p,[id]:deptData}));
+
+  // 접속 시 Supabase에서 실제 제출 현황을 불러와 반영
+  useEffect(() => {
+    (async () => {
+      try {
+        const byDept = await fetchLatestByDept();
+        const nextForm = {}, nextSubmitted = {};
+        DEPARTMENTS.forEach(d => {
+          const r = byDept[d.id];
+          if (r) {
+            nextForm[d.id] = {
+              submitter: r.submitter || "",
+              g3Names: r.g3_names || "", g4Names: r.g4_names || "", g5Names: r.g5_names || "",
+              noteItems: parseNotes(r.note).map(n=>({ id:newNoteRow().id, name:n.name||"", reason:n.reason||"" })),
+            };
+            nextSubmitted[d.id] = true;
+          }
+        });
+        if (Object.keys(nextSubmitted).length) {
+          setFormData(p=>({ ...p, ...nextForm }));
+          setSubmittedSet(p=>({ ...p, ...nextSubmitted }));
+        }
+      } catch (e) { /* 조회 실패 시 빈 폼 유지 */ }
+    })();
+  }, []);
+
   const submittedCount = DEPARTMENTS.filter(d=>submittedSet[d.id]).length;
   const progress = Math.round((submittedCount/DEPARTMENTS.length)*100);
 

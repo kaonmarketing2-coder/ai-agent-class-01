@@ -310,7 +310,8 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 </script>
   <script>
 const {
-  useState
+  useState,
+  useEffect
 } = React;
 const SUPABASE_URL = "https://mrdmywosqzaqukdfvbzv.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1yZG15d29zcXphcXVrZGZ2Ynp2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5NzIzNTksImV4cCI6MjA4OTU0ODM1OX0.D2PKVx9cqyAg-qIpKdtUX9z9AwdjDwNgo6Nsyy4vdNM";
@@ -416,6 +417,18 @@ async function fetchLatestSubmission(deptId) {
   if (!res.ok) throw new Error("불러오기 실패. 잠시 후 다시 시도해주세요.");
   const rows = await res.json();
   return rows[0] || null;
+}
+
+// 전체 제출 중 부서별 최신 1건 (페이지 접속 시 현황 반영용)
+async function fetchLatestByDept() {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/training_submissions?select=*&order=submitted_at.desc`, {
+    headers: HEADERS
+  });
+  if (!res.ok) throw new Error("불러오기 실패");
+  const rows = await res.json();
+  const byDept = {};
+  for (const r of rows) if (!byDept[r.department_id]) byDept[r.department_id] = r;
+  return byDept;
 }
 function NameInput({
   value,
@@ -1059,6 +1072,39 @@ function App() {
     ...prev,
     [deptId]: deptData
   }));
+
+  // 접속 시 Supabase에서 실제 제출 현황을 불러와 반영
+  useEffect(() => {
+    (async () => {
+      try {
+        const byDept = await fetchLatestByDept();
+        const nextForm = {},
+          nextSubmitted = {};
+        DEPARTMENTS.forEach(d => {
+          const r = byDept[d.id];
+          if (r) {
+            nextForm[d.id] = {
+              submitter: r.submitter || "",
+              g1Names: r.g1_names || "",
+              g2Names: r.g2_names || "",
+              noteItems: parseNote(r.note)
+            };
+            nextSubmitted[d.id] = true;
+          }
+        });
+        if (Object.keys(nextSubmitted).length) {
+          setFormData(prev => ({
+            ...prev,
+            ...nextForm
+          }));
+          setSubmittedSet(prev => ({
+            ...prev,
+            ...nextSubmitted
+          }));
+        }
+      } catch (e) {/* 조회 실패 시 빈 폼 유지 */}
+    })();
+  }, []);
   const submittedCount = DEPARTMENTS.filter(d => submittedSet[d.id]).length;
   const progress = Math.round(submittedCount / DEPARTMENTS.length * 100);
   return /*#__PURE__*/React.createElement("div", {
