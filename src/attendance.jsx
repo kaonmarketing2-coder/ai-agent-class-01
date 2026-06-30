@@ -10,9 +10,9 @@ const HEADERS = {
 };
 
 const DEPARTMENTS = [
-  { id: "d1", name: "RM본부/제조관리그룹", sub: "구매 · 물류 · 자재", total: 24 },
+  { id: "d1", name: "RM본부/제조관리그룹", sub: "구매 · 물류 · 자재", total: 25 },
   { id: "d2", name: "RM본부/원가관리그룹", sub: "", total: 6 },
-  { id: "d3", name: "RM본부/품질혁신그룹", sub: "CS · 품질관리 · QA · 제조기술 · 자동화솔루션", total: 28 },
+  { id: "d3", name: "RM본부/품질혁신그룹", sub: "CS · 품질관리 · QA · 제조기술 · 자동화솔루션", total: 29 },
 ];
 
 const G1 = { label: "1차수", date: "7/8(화) ~ 7/9(수)", color: "#1D4ED8", bg: "#EFF6FF", border: "#BFDBFE", tag: "#DBEAFE", tagText: "#1E40AF" };
