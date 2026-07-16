@@ -211,7 +211,7 @@ function App() {
           </div>
           <h1 style={{margin:"0 0 8px",fontSize:22,fontWeight:800,color:"#F1F5F9"}}>커리큘럼 수강 신청</h1>
           <p style={{margin:"0 0 18px",fontSize:13,color:"#94A3B8",lineHeight:1.7}}>
-            아래 3개 차시의 커리큘럼을 확인하고, <strong style={{color:"#E2E8F0"}}>참석을 원하는 차시를 선택</strong>해 신청해주세요.
+            아래 3개 차시의 커리큘럼을 확인하고, <strong style={{color:"#E2E8F0"}}>참석을 원하는 차시를 선택</strong>해 신청해주세요. (중복 신청 가능)
           </p>
           <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
             <span style={{background:"#1E293B",color:"#93C5FD",fontSize:12,fontWeight:600,borderRadius:8,padding:"6px 12px"}}>✔ 차시 중복 신청 가능</span>
@@ -221,8 +221,7 @@ function App() {
 
         {/* 수료 조건 안내 */}
         <div style={{background:"#FFFBEB",border:"1.5px solid #FDE68A",borderRadius:12,padding:"14px 18px",marginBottom:18,fontSize:13,color:"#92400E",lineHeight:1.7}}>
-          <strong>📌 수료 조건</strong> — 신청하신 <strong>각 차시별로 최소 {MIN_HOURS}시간 이상 참여·수료</strong>해야 해당 차시가 수료로 인정됩니다.
-          차시별 실질 교육시간은 점심시간(1시간)을 제외하고 <strong>5~6시간</strong>입니다. 커리큘럼을 보고 완주 가능한 차시를 선택해주세요.
+          <strong>📌 수료 조건</strong> — 차시별 실질 교육시간은 점심시간(1시간)을 제외하고 <strong>5~6시간</strong>입니다. 중간 이탈 없이 참석 가능한 차시를 선택해주세요.
         </div>
 
         {/* 신청자 정보 */}
