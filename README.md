@@ -12,6 +12,19 @@
 | `dashboard.html` | 관리자 대시보드 — 1·2차수 (비밀번호 필요) | `training_submissions` |
 | `attendance_g345.html` | 참석 배정 제출 폼 — 3·4·5차수 | `training_submissions_g345` |
 | `dashboard_g345.html` | 관리자 대시보드 — 3·4·5차수 (비밀번호 필요) | `training_submissions_g345` |
+| `enroll.html` | 커리큘럼 수강 신청 폼 — 가온그룹 전사공통 AI 실무교육 (개인별 차시 신청) | `curriculum_enrollments` |
+| `enroll_dashboard.html` | 수강 신청 현황 대시보드 (비밀번호 필요 · CSV 내보내기) | `curriculum_enrollments` |
+
+### 커리큘럼 수강 신청 (enroll)
+
+- 개인이 커리큘럼을 보고 **참석 희망 차시를 직접 선택**해 접수하는 폼입니다.
+- **차시 중복 신청 가능** — 원하는 차시를 여러 개 선택할 수 있습니다.
+- **수료 조건**: 각 차시별로 **최소 4.5시간 이상 참여·수료** 시 인정 (폼·대시보드 상단에 명시).
+- 차시 일정 (점심 1시간 제외):
+  - 1차시 — 7/27(월) 11:00~18:00 · 실질 6시간 · Claude 제대로 시작하기
+  - 2차시 — 7/28(화) 09:00~15:00 · 실질 5시간 · 실무 산출물 직접 만들기
+  - 3차시 — 7/30(목) 11:00~18:00 · 실질 6시간 · 반복업무 표준화·자동화 & 직무 적용
+- 대시보드 비밀번호는 다른 대시보드와 동일하게 `src/enroll_dashboard.jsx`의 `DASHBOARD_PASSWORD`(`kaon2025`)에서 변경 후 빌드하세요.
 
 - 3·4·5차수 대상 부서: 영업본부, Corporate실, PI그룹, 경영지원본부(ESG팀 포함), ProjectManage본부
 - 3·4·5차수 대시보드는 CSV 외에 Google Sheets 내보내기도 지원합니다

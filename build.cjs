@@ -21,6 +21,8 @@ const PAGES = [
   { src: "src/dashboard.jsx", out: "dashboard.html", title: "교육 배정 현황 대시보드 (1·2차수)" },
   { src: "src/attendance_g345.jsx", out: "attendance_g345.html", title: "교육 참석 차수 배정 제출 (3·4·5차수)" },
   { src: "src/dashboard_g345.jsx", out: "dashboard_g345.html", title: "교육 배정 현황 대시보드 (3·4·5차수)" },
+  { src: "src/enroll.jsx", out: "enroll.html", title: "커리큘럼 수강 신청 — 가온그룹 전사공통 AI 실무교육" },
+  { src: "src/enroll_dashboard.jsx", out: "enroll_dashboard.html", title: "수강 신청 현황 — 가온그룹 전사공통 AI 실무교육" },
 ];
 
 for (const { src, out, title } of PAGES) {
