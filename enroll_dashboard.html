@@ -322,6 +322,8 @@ const HEADERS = {
   "apikey": SUPABASE_KEY,
   "Authorization": `Bearer ${SUPABASE_KEY}`
 };
+// (수료 조건 문구에서 시간 기준 표현 제거)
+
 const SESSIONS = [{
   key: "s1",
   label: "1차시",
@@ -357,7 +359,6 @@ const SESSIONS = [{
   tagText: "#065F46"
 }];
 const SKEYS = SESSIONS.map(s => s.key);
-const MIN_HOURS = 4.5;
 async function fetchRows() {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?select=*&order=submitted_at.desc`, {
     headers: HEADERS
@@ -623,7 +624,7 @@ function Dashboard() {
       color: "#92400E",
       lineHeight: 1.6
     }
-  }, "\u23F1\uFE0F ", /*#__PURE__*/React.createElement("strong", null, "\uC218\uB8CC \uC870\uAC74"), " \u2014 \uAC01 \uCC28\uC2DC\uBCC4 \uCD5C\uC18C ", MIN_HOURS, "\uC2DC\uAC04 \uC774\uC0C1 \uCC38\uC5EC\xB7\uC218\uB8CC \uC2DC \uC778\uC815 (\uCC28\uC2DC\uBCC4 \uC2E4\uC9C8 \uAD50\uC721\uC2DC\uAC04 5~6\uC2DC\uAC04, \uC810\uC2EC 1\uC2DC\uAC04 \uC81C\uC678 \xB7 \uCC28\uC2DC \uC911\uBCF5 \uC2E0\uCCAD \uAC00\uB2A5)"), /*#__PURE__*/React.createElement("div", {
+  }, "\u23F1\uFE0F ", /*#__PURE__*/React.createElement("strong", null, "\uC218\uB8CC \uC870\uAC74"), " \u2014 \uAC01 \uCC28\uC2DC \uC911\uAC04 \uC774\uD0C8 \uC5C6\uC774 \uB05D\uAE4C\uC9C0 \uCC38\uC11D \uC2DC \uC218\uB8CC \uC778\uC815 (\uCC28\uC2DC\uBCC4 \uC2E4\uC9C8 \uAD50\uC721\uC2DC\uAC04 5~6\uC2DC\uAC04, \uC810\uC2EC 1\uC2DC\uAC04 \uC81C\uC678 \xB7 \uCC28\uC2DC \uC911\uBCF5 \uC2E0\uCCAD \uAC00\uB2A5)"), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "grid",
       gridTemplateColumns: "repeat(3,1fr)",

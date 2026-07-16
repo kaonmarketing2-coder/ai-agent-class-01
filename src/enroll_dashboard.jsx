@@ -4,6 +4,7 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const DASHBOARD_PASSWORD = "kaon2025";
 const TABLE = "curriculum_enrollments";
 const HEADERS = { "apikey":SUPABASE_KEY, "Authorization":`Bearer ${SUPABASE_KEY}` };
+// (수료 조건 문구에서 시간 기준 표현 제거)
 
 const SESSIONS = [
   { key:"s1", label:"1차시", title:"Claude 제대로 시작하기", date:"7/27(월) 11:00~18:00", hours:6, color:"#4361EE", bg:"#EEF2FF", border:"#C7D2FE", tag:"#E0E7FF", tagText:"#3730A3" },
@@ -11,7 +12,6 @@ const SESSIONS = [
   { key:"s3", label:"3차시", title:"반복업무 표준화·자동화", date:"7/30(목) 11:00~18:00", hours:6, color:"#059669", bg:"#ECFDF5", border:"#A7F3D0", tag:"#D1FAE5", tagText:"#065F46" },
 ];
 const SKEYS = SESSIONS.map(s=>s.key);
-const MIN_HOURS = 4.5;
 
 async function fetchRows() {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?select=*&order=submitted_at.desc`,{headers:HEADERS});
@@ -103,7 +103,7 @@ function Dashboard() {
 
         {/* 수료 조건 안내 */}
         <div style={{background:"#FFFBEB",border:"1px solid #FDE68A",borderRadius:12,padding:"12px 16px",marginBottom:18,fontSize:12.5,color:"#92400E",lineHeight:1.6}}>
-          ⏱️ <strong>수료 조건</strong> — 각 차시별 최소 {MIN_HOURS}시간 이상 참여·수료 시 인정 (차시별 실질 교육시간 5~6시간, 점심 1시간 제외 · 차시 중복 신청 가능)
+          ⏱️ <strong>수료 조건</strong> — 각 차시 중간 이탈 없이 끝까지 참석 시 수료 인정 (차시별 실질 교육시간 5~6시간, 점심 1시간 제외 · 차시 중복 신청 가능)
         </div>
 
         {/* 차시별 집계 */}

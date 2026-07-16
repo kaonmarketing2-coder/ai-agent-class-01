@@ -320,7 +320,6 @@ const HEADERS = {
   "Authorization": `Bearer ${SUPABASE_KEY}`
 };
 const TABLE = "curriculum_enrollments";
-const MIN_HOURS = 4.5;
 const MAXW = 760;
 
 // 각 차시별 실질 교육시간(점심 1시간 제외) 및 커리큘럼 상세 (제안서 원본 반영)
@@ -766,7 +765,7 @@ function App() {
         marginBottom: 24,
         textAlign: "left"
       }
-    }, "\u23F1\uFE0F ", /*#__PURE__*/React.createElement("strong", null, "\uC218\uB8CC \uC870\uAC74 \uC548\uB0B4"), " \u2014 \uC2E0\uCCAD\uD558\uC2E0 \uAC01 \uCC28\uC2DC\uB294 ", /*#__PURE__*/React.createElement("strong", null, "\uCD5C\uC18C ", MIN_HOURS, "\uC2DC\uAC04 \uC774\uC0C1 \uCC38\uC5EC\xB7\uC218\uB8CC"), "\uD574\uC57C \uC218\uB8CC\uB85C \uC778\uC815\uB429\uB2C8\uB2E4. (\uCC28\uC2DC\uBCC4 \uC2E4\uC9C8 \uAD50\uC721\uC2DC\uAC04 5~6\uC2DC\uAC04)"), /*#__PURE__*/React.createElement("button", {
+    }, "\u23F1\uFE0F ", /*#__PURE__*/React.createElement("strong", null, "\uC218\uB8CC \uC870\uAC74 \uC548\uB0B4"), " \u2014 \uC2E0\uCCAD\uD558\uC2E0 \uAC01 \uCC28\uC2DC\uB294 ", /*#__PURE__*/React.createElement("strong", null, "\uC911\uAC04 \uC774\uD0C8 \uC5C6\uC774 \uB05D\uAE4C\uC9C0 \uCC38\uC11D"), "\uD574\uC8FC\uC138\uC694. (\uCC28\uC2DC\uBCC4 \uC2E4\uC9C8 \uAD50\uC721\uC2DC\uAC04 5~6\uC2DC\uAC04, \uC810\uC2EC 1\uC2DC\uAC04 \uC81C\uC678)"), /*#__PURE__*/React.createElement("button", {
       onClick: () => {
         setData({
           name: "",
@@ -868,7 +867,7 @@ function App() {
       borderRadius: 8,
       padding: "6px 12px"
     }
-  }, "\u23F1\uFE0F \uAC01 \uCC28\uC2DC \uCD5C\uC18C ", MIN_HOURS, "\uC2DC\uAC04 \uC774\uC0C1 \uC218\uB8CC"))), /*#__PURE__*/React.createElement("div", {
+  }, "\u23F1\uFE0F \uC911\uAC04 \uC774\uD0C8 \uC5C6\uC774 \uCC38\uC11D"))), /*#__PURE__*/React.createElement("div", {
     style: {
       background: "#FFFBEB",
       border: "1.5px solid #FDE68A",

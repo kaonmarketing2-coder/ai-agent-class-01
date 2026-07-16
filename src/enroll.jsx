@@ -3,7 +3,6 @@ const SUPABASE_URL = "https://mrdmywosqzaqukdfvbzv.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1yZG15d29zcXphcXVrZGZ2Ynp2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5NzIzNTksImV4cCI6MjA4OTU0ODM1OX0.D2PKVx9cqyAg-qIpKdtUX9z9AwdjDwNgo6Nsyy4vdNM";
 const HEADERS = { "Content-Type":"application/json","apikey":SUPABASE_KEY,"Authorization":`Bearer ${SUPABASE_KEY}` };
 const TABLE = "curriculum_enrollments";
-const MIN_HOURS = 4.5;
 const MAXW = 760;
 
 // 각 차시별 실질 교육시간(점심 1시간 제외) 및 커리큘럼 상세 (제안서 원본 반영)
@@ -187,7 +186,7 @@ function App() {
               ))}
             </div>
             <div style={{background:"#FFFBEB",border:"1px solid #FDE68A",borderRadius:10,padding:"12px 16px",fontSize:12.5,color:"#92400E",lineHeight:1.7,marginBottom:24,textAlign:"left"}}>
-              ⏱️ <strong>수료 조건 안내</strong> — 신청하신 각 차시는 <strong>최소 {MIN_HOURS}시간 이상 참여·수료</strong>해야 수료로 인정됩니다. (차시별 실질 교육시간 5~6시간)
+              ⏱️ <strong>수료 조건 안내</strong> — 신청하신 각 차시는 <strong>중간 이탈 없이 끝까지 참석</strong>해주세요. (차시별 실질 교육시간 5~6시간, 점심 1시간 제외)
             </div>
             <button onClick={()=>{ setData({ name:"", department:"", s1:false, s2:false, s3:false, note:"" }); setDone(false); window.scrollTo(0,0); }}
               style={{padding:"11px 22px",background:"#0F172A",color:"#fff",border:"none",borderRadius:10,fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>
@@ -215,7 +214,7 @@ function App() {
           </p>
           <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
             <span style={{background:"#1E293B",color:"#93C5FD",fontSize:12,fontWeight:600,borderRadius:8,padding:"6px 12px"}}>✔ 차시 중복 신청 가능</span>
-            <span style={{background:"#1E293B",color:"#FCD34D",fontSize:12,fontWeight:600,borderRadius:8,padding:"6px 12px"}}>⏱️ 각 차시 최소 {MIN_HOURS}시간 이상 수료</span>
+            <span style={{background:"#1E293B",color:"#FCD34D",fontSize:12,fontWeight:600,borderRadius:8,padding:"6px 12px"}}>⏱️ 중간 이탈 없이 참석</span>
           </div>
         </div>
 
