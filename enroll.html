@@ -310,8 +310,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 </script>
   <script>
 const {
-  useState,
-  useEffect
+  useState
 } = React;
 const SUPABASE_URL = "https://mrdmywosqzaqukdfvbzv.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1yZG15d29zcXphcXVrZGZ2Ynp2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5NzIzNTksImV4cCI6MjA4OTU0ODM1OX0.D2PKVx9cqyAg-qIpKdtUX9z9AwdjDwNgo6Nsyy4vdNM";
@@ -321,8 +320,10 @@ const HEADERS = {
   "Authorization": `Bearer ${SUPABASE_KEY}`
 };
 const TABLE = "curriculum_enrollments";
+const MIN_HOURS = 4.5;
+const MAXW = 760;
 
-// 각 차시별 실질 교육시간(점심 1시간 제외) 및 커리큘럼 요약
+// 각 차시별 실질 교육시간(점심 1시간 제외) 및 커리큘럼 상세 (제안서 원본 반영)
 const SESSIONS = [{
   key: "s1",
   label: "1차시",
@@ -337,22 +338,26 @@ const SESSIONS = [{
   border: "#C7D2FE",
   tag: "#E0E7FF",
   tagText: "#3730A3",
-  modules: [{
+  rows: [{
     h: "1.5H",
-    t: "LLM 작동 원리 · 보안·기밀 기준",
-    d: "토큰·컨텍스트·환각성 이해 / 업로드 가능·불가 자료 구분"
+    role: "이론",
+    sub: "LLM·보안 기초",
+    c: "LLM 작동 원리(토큰·컨텍스트·환각성)를 비전공자 눈높이로 설명, 회사 자료 중 업로드 가능한 것과 안 되는 것을 명확히 구분하는 보안·기밀 기준 안내"
   }, {
     h: "1.5H",
-    t: "프롬프트 설계 · 검증",
-    d: "프롬프트 4원칙(역할·맥락·형식·예시) · 할루시네이션 검증 습관"
+    role: "이론·실습",
+    sub: "프롬프트 설계",
+    c: "프롬프트 4원칙(역할·맥락·형식·예시)과 재질문을 통한 결과 개선, 할루시네이션 검증 습관 — 근거·교차 확인·수치 재점검"
   }, {
     h: "1.5H",
-    t: "채팅 기초 실습",
-    d: "본인 업무 문서 1건 입력 → 요약·분석·재질문"
+    role: "실습 1",
+    sub: "채팅 기초",
+    c: "채팅 구성 익히기, 본인 업무 문서 1건 입력 → 요약·분석·재질문 실습"
   }, {
     h: "1.5H",
-    t: "Projects 구축",
-    d: "팀 맥락을 담은 전용 프로젝트 1개 생성"
+    role: "실습 2",
+    sub: "Projects 구축",
+    c: "Claude Projects에 본인 팀 맥락(소개·용어·룰·양식)을 입력한 전용 프로젝트 1개 생성 [과제] 생성한 프로젝트를 실제 업무 1건에 적용해 2차시 지참"
   }]
 }, {
   key: "s2",
@@ -368,27 +373,31 @@ const SESSIONS = [{
   border: "#DDD6FE",
   tag: "#EDE9FE",
   tagText: "#5B21B6",
-  modules: [{
+  rows: [{
     h: "1H",
-    t: "Artifacts 워크플로우 시연",
-    d: "보고서·기획안·메일·표를 대화하며 즉석 생성·수정"
+    role: "시연",
+    sub: "Artifacts 워크플로우",
+    c: "Artifacts로 보고서·기획안·메일·표를 대화하며 즉석 생성·수정하는 워크플로우 시연"
   }, {
     h: "2H",
-    t: "문서·엑셀 트랙 실습",
-    d: "실제 보고서·메일 완성 / 데이터 파일 취합·분석·표 생성"
+    role: "실습 1",
+    sub: "문서·엑셀 트랙",
+    c: "[문서·메일 트랙] 본인 실제 업무 보고서 또는 메일 초안 1건을 Artifacts로 완성 · [엑셀 트랙] 실제 데이터 파일 업로드 → 취합·정리·분석·표 생성"
   }, {
     h: "1.5H",
-    t: "업무 도구 제작",
-    d: "코딩 없이 계산기·체크리스트·대시보드 등 도구 1개 제작"
+    role: "실습 2",
+    sub: "업무 도구 제작",
+    c: "코딩 없이 계산기·체크리스트·간단 대시보드 등 \"작동하는 업무 도구\" 1개를 Artifacts로 제작"
   }, {
     h: "1.5H",
-    t: "기획·발표자료",
-    d: "기획서·발표자료 초안 생성 후 다듬기"
+    role: "실습 3",
+    sub: "기획·발표자료",
+    c: "기획서·발표자료 초안을 생성 후 다듬기 [과제] 이번 주 실제 업무 산출물 1건을 AI로 제작해 3차시 지참"
   }]
 }, {
   key: "s3",
   label: "3차시",
-  title: "반복업무 표준화·자동화 & 직무 적용",
+  title: "반복업무 표준화·자동화 입문 & 직무 적용",
   subtitle: "Skills · 자동화 · 데이터 분석",
   date: "7/30 (목)",
   time: "11:00 ~ 18:00",
@@ -399,26 +408,39 @@ const SESSIONS = [{
   border: "#A7F3D0",
   tag: "#D1FAE5",
   tagText: "#065F46",
-  modules: [{
+  rows: [{
     h: "1H",
-    t: "Skills · Agent 개념",
-    d: "반복 작업 절차를 스킬로 정의 · AI Agent 개념 소개"
+    role: "이론·시연",
+    sub: "Skills · Agent 개념",
+    c: "Claude Skills 개념: 반복 작업 절차를 스킬로 정의해 일관되게 처리하는 원리, AI Agent 개념 소개(팀 중심) — 직무별 심화 설계는 후속 심화 과정에서 다룰 것을 명확히 안내"
   }, {
     h: "1H",
-    t: "녹취 → 할일 리스트",
-    d: "회의 녹취 → 액션 아이템·업무분담표 자동 정리"
+    role: "PART 1",
+    sub: "녹취 → 할일 리스트",
+    c: "회의 녹음·통화 녹취 파일(STT 변환본)을 업로드해 참석자·논의주제·결정사항·담당자별 액션 아이템(할일 리스트)을 자동 정리, 부서 간 업무분담표로 즉시 변환하는 실습. 실제 회의 녹취를 소재로 진행"
   }, {
-    h: "2H",
-    t: "문서 자동화 · API 대량 처리",
-    d: "양식 템플릿화 일괄 생성 / 수백~수천 건 데이터 일괄 처리"
+    h: "1H",
+    role: "PART 2",
+    sub: "문서 자동화",
+    c: "반복 작성되는 품질 리포트·점검 일지·거래처 공문 등의 양식을 템플릿화하여 데이터만 갈아끼우면 완성되는 문서 자동화 구조 설계, 여러 건을 한 번에 일괄 생성하는 실습"
   }, {
-    h: "2H",
-    t: "데이터 분석·대시보드 · 팀 적용",
-    d: "실제 데이터 → 대시보드 제작 / 보안 기준 · 팀 적용 계획 1장"
+    h: "1H",
+    role: "PART 3",
+    sub: "API 대량 데이터 처리",
+    c: "API 연동 개념 이해 — 외부 시스템·대용량 데이터를 코드 몇 줄로 불러와 수백~수천 건 단위의 데이터를 일괄 처리·가공하는 원리 실습, 반복적인 대량 데이터 취합 업무 자동화 시연"
+  }, {
+    h: "1H",
+    role: "PART 4",
+    sub: "데이터 분석·대시보드",
+    c: "본인 부서의 실제 데이터(생산·품질·발주 등)를 업로드해 핵심 지표 분석과 인터랙티브 대시보드를 직접 완성, 경영진 보고에 바로 활용 가능한 시각화 산출물 제작"
+  }, {
+    h: "1H",
+    role: "정리",
+    sub: "보안 기준 · 팀 적용",
+    c: "보안·기밀 기준과 결과 검증 프로세스 — 자동화 시 입력 가능한 정보 범위 최종 정리, 개인별 \"팀 적용 계획 1장\" 작성·공유, 팀 공유 프롬프트 라이브러리 구축 시작"
   }]
 }];
 const SKEYS = SESSIONS.map(s => s.key);
-const MIN_HOURS = 4.5;
 async function insertEnrollment(d) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}`, {
     method: "POST",
@@ -429,7 +451,7 @@ async function insertEnrollment(d) {
     body: JSON.stringify({
       name: d.name.trim(),
       department: d.department.trim(),
-      contact: d.contact.trim(),
+      contact: "",
       s1: d.s1,
       s2: d.s2,
       s3: d.s3,
@@ -440,56 +462,52 @@ async function insertEnrollment(d) {
   if (!res.ok) throw new Error("접수 실패. 잠시 후 다시 시도해주세요.");
   return (await res.json())[0]?.id;
 }
-async function fetchCounts() {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?select=s1,s2,s3`, {
-    headers: HEADERS
-  });
-  if (!res.ok) throw new Error("현황 조회 실패");
-  const rows = await res.json();
-  const c = {
-    s1: 0,
-    s2: 0,
-    s3: 0,
-    people: rows.length
-  };
-  rows.forEach(r => SKEYS.forEach(k => {
-    if (r[k]) c[k]++;
-  }));
-  return c;
+
+// 커리큘럼 표 반응형 스타일 (제안서 track 테이블 스타일 반영)
+function Styles() {
+  return /*#__PURE__*/React.createElement("style", null, `
+      .cur-table{border:1px solid #E2E8F0;border-radius:10px;overflow:hidden;background:#fff}
+      .cur-r{display:grid;grid-template-columns:56px 148px 1fr;border-top:1px solid #F1F5F9}
+      .cur-r:first-child{border-top:none}
+      .cur-r>div{padding:11px 13px}
+      .cur-t{font-weight:800;font-size:12px;display:flex;align-items:flex-start}
+      .cur-m{font-weight:700;font-size:12.5px;color:#0F172A;border-left:1px solid #F1F5F9;border-right:1px solid #F1F5F9;line-height:1.45}
+      .cur-m small{display:block;font-size:11px;font-weight:500;color:#94A3B8;margin-top:2px}
+      .cur-c{font-size:12.5px;color:#475569;line-height:1.65}
+      @media(max-width:560px){
+        .cur-r{grid-template-columns:1fr}
+        .cur-r>div{padding:9px 13px}
+        .cur-t{border-bottom:0}
+        .cur-m{border-left:none;border-right:none;border-top:1px solid #F1F5F9;padding-top:8px}
+        .cur-c{border-top:1px solid #F1F5F9;padding-top:8px}
+      }
+    `);
 }
 function SessionCard({
   s,
   checked,
-  onToggle,
-  count
+  onToggle
 }) {
   return /*#__PURE__*/React.createElement("div", {
-    onClick: onToggle,
     style: {
       border: `2px solid ${checked ? s.color : "#E2E8F0"}`,
       borderRadius: 14,
       overflow: "hidden",
       marginBottom: 14,
-      cursor: "pointer",
       background: checked ? s.bg : "#fff",
       transition: "all 0.15s",
       boxShadow: checked ? `0 4px 16px ${s.color}22` : "none"
     }
   }, /*#__PURE__*/React.createElement("div", {
+    onClick: onToggle,
     style: {
       padding: "16px 20px",
       background: checked ? s.bg : "#F8FAFC",
       borderBottom: `1px solid ${checked ? s.border : "#E2E8F0"}`,
       display: "flex",
-      justifyContent: "space-between",
-      alignItems: "flex-start",
-      gap: 12
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
       gap: 14,
-      alignItems: "flex-start"
+      alignItems: "flex-start",
+      cursor: "pointer"
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
@@ -512,12 +530,17 @@ function SessionCard({
       fontWeight: 900,
       lineHeight: 1
     }
-  }, "\u2713")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+  }, "\u2713")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }, /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
       alignItems: "center",
       gap: 8,
-      marginBottom: 3
+      marginBottom: 3,
+      flexWrap: "wrap"
     }
   }, /*#__PURE__*/React.createElement("span", {
     style: {
@@ -527,7 +550,7 @@ function SessionCard({
     }
   }, s.label), /*#__PURE__*/React.createElement("span", {
     style: {
-      fontSize: 15,
+      fontSize: 15.5,
       fontWeight: 700,
       color: "#0F172A"
     }
@@ -536,18 +559,7 @@ function SessionCard({
       fontSize: 12,
       color: "#64748B"
     }
-  }, s.subtitle))), typeof count === "number" && /*#__PURE__*/React.createElement("span", {
-    style: {
-      background: s.tag,
-      color: s.tagText,
-      fontSize: 11,
-      fontWeight: 700,
-      borderRadius: 99,
-      padding: "3px 10px",
-      whiteSpace: "nowrap",
-      flexShrink: 0
-    }
-  }, "\uD604\uC7AC ", count, "\uBA85")), /*#__PURE__*/React.createElement("div", {
+  }, s.subtitle))), /*#__PURE__*/React.createElement("div", {
     style: {
       padding: "14px 20px"
     }
@@ -556,7 +568,7 @@ function SessionCard({
       display: "flex",
       flexWrap: "wrap",
       gap: 8,
-      marginBottom: 14,
+      marginBottom: 12,
       alignItems: "center"
     }
   }, /*#__PURE__*/React.createElement("span", {
@@ -592,70 +604,56 @@ function SessionCard({
       marginLeft: "auto"
     }
   }, "\uC2E4\uC9C8 \uAD50\uC721 ", s.hours, "\uC2DC\uAC04")), /*#__PURE__*/React.createElement("div", {
+    className: "cur-table"
+  }, s.rows.map((m, i) => /*#__PURE__*/React.createElement("div", {
+    className: "cur-r",
+    key: i
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "cur-t",
     style: {
-      display: "grid",
-      gap: 6
-    }
-  }, s.modules.map((m, i) => /*#__PURE__*/React.createElement("div", {
-    key: i,
-    style: {
-      display: "grid",
-      gridTemplateColumns: "46px 1fr",
-      gap: 10,
-      alignItems: "start"
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontSize: 11,
-      fontWeight: 800,
       color: s.color,
-      background: s.bg,
-      border: `1px solid ${s.border}`,
-      borderRadius: 6,
-      padding: "3px 0",
-      textAlign: "center"
+      background: s.bg
     }
   }, m.h), /*#__PURE__*/React.createElement("div", {
+    className: "cur-m"
+  }, m.role, /*#__PURE__*/React.createElement("small", null, m.sub)), /*#__PURE__*/React.createElement("div", {
+    className: "cur-c"
+  }, m.c)))), /*#__PURE__*/React.createElement("button", {
+    onClick: onToggle,
     style: {
-      fontSize: 12.5,
-      color: "#334155",
-      lineHeight: 1.55
+      marginTop: 14,
+      width: "100%",
+      padding: "11px",
+      border: `1.5px solid ${checked ? s.color : "#CBD5E1"}`,
+      borderRadius: 10,
+      background: checked ? s.color : "#fff",
+      color: checked ? "#fff" : "#475569",
+      fontSize: 13,
+      fontWeight: 700,
+      cursor: "pointer",
+      fontFamily: "inherit",
+      transition: "all 0.15s"
     }
-  }, /*#__PURE__*/React.createElement("strong", {
-    style: {
-      color: "#0F172A",
-      fontWeight: 700
-    }
-  }, m.t), /*#__PURE__*/React.createElement("span", {
-    style: {
-      color: "#94A3B8"
-    }
-  }, " \u2014 ", m.d)))))));
+  }, checked ? "✓ 이 차시 신청 선택됨 (해제하려면 클릭)" : "이 차시 신청하기")));
 }
 function App() {
   const [data, setData] = useState({
     name: "",
     department: "",
-    contact: "",
     s1: false,
     s2: false,
     s3: false,
     note: ""
   });
-  const [counts, setCounts] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
-  const loadCounts = () => {
-    fetchCounts().then(setCounts).catch(() => {});
-  };
-  useEffect(loadCounts, []);
   const set = (k, v) => setData(p => ({
     ...p,
     [k]: v
   }));
   const selected = SKEYS.filter(k => data[k]);
-  const canSubmit = data.name.trim().length > 0 && selected.length > 0;
+  const canSubmit = data.name.trim().length > 0 && data.department.trim().length > 0 && selected.length > 0;
   const handleSubmit = async () => {
     if (!canSubmit || loading) return;
     setLoading(true);
@@ -663,13 +661,14 @@ function App() {
     try {
       await insertEnrollment(data);
       setDone(true);
-      loadCounts();
+      window.scrollTo(0, 0);
     } catch (e) {
       setError(e.message);
     } finally {
       setLoading(false);
     }
   };
+  const btnLabel = loading ? "접수 중..." : !data.name.trim() ? "이름을 입력해주세요" : !data.department.trim() ? "소속/부서를 입력해주세요" : selected.length === 0 ? "참석할 차시를 1개 이상 선택해주세요" : "수강 신청 접수하기 →";
   const wrap = {
     fontFamily: "'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif",
     background: "#F1F5F9",
@@ -678,10 +677,9 @@ function App() {
   };
   if (done) {
     const chosen = SESSIONS.filter(s => data[s.key]);
-    const totalH = chosen.reduce((a, s) => a + s.hours, 0);
     return /*#__PURE__*/React.createElement("div", {
       style: wrap
-    }, /*#__PURE__*/React.createElement("div", {
+    }, /*#__PURE__*/React.createElement(Styles, null), /*#__PURE__*/React.createElement("div", {
       style: {
         maxWidth: 640,
         margin: "0 auto"
@@ -712,7 +710,7 @@ function App() {
         color: "#64748B",
         marginBottom: 24
       }
-    }, data.name, "\uB2D8 \xB7 \uC2E0\uCCAD\uD558\uC2E0 \uCC28\uC2DC ", chosen.length, "\uAC1C"), /*#__PURE__*/React.createElement("div", {
+    }, data.department, " \xB7 ", data.name, "\uB2D8 \xB7 \uC2E0\uCCAD \uCC28\uC2DC ", chosen.length, "\uAC1C"), /*#__PURE__*/React.createElement("div", {
       style: {
         display: "grid",
         gap: 8,
@@ -773,7 +771,6 @@ function App() {
         setData({
           name: "",
           department: "",
-          contact: "",
           s1: false,
           s2: false,
           s3: false,
@@ -804,9 +801,9 @@ function App() {
   }
   return /*#__PURE__*/React.createElement("div", {
     style: wrap
-  }, /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement(Styles, null), /*#__PURE__*/React.createElement("div", {
     style: {
-      maxWidth: 640,
+      maxWidth: MAXW,
       margin: "0 auto"
     }
   }, /*#__PURE__*/React.createElement("div", {
@@ -871,16 +868,7 @@ function App() {
       borderRadius: 8,
       padding: "6px 12px"
     }
-  }, "\u23F1\uFE0F \uAC01 \uCC28\uC2DC \uCD5C\uC18C ", MIN_HOURS, "\uC2DC\uAC04 \uC774\uC0C1 \uC218\uB8CC"), counts && /*#__PURE__*/React.createElement("span", {
-    style: {
-      background: "#1E293B",
-      color: "#86EFAC",
-      fontSize: 12,
-      fontWeight: 600,
-      borderRadius: 8,
-      padding: "6px 12px"
-    }
-  }, "\uD604\uC7AC ", counts.people, "\uBA85 \uC811\uC218"))), /*#__PURE__*/React.createElement("div", {
+  }, "\u23F1\uFE0F \uAC01 \uCC28\uC2DC \uCD5C\uC18C ", MIN_HOURS, "\uC2DC\uAC04 \uC774\uC0C1 \uC218\uB8CC"))), /*#__PURE__*/React.createElement("div", {
     style: {
       background: "#FFFBEB",
       border: "1.5px solid #FDE68A",
@@ -910,8 +898,7 @@ function App() {
     style: {
       display: "grid",
       gridTemplateColumns: "1fr 1fr",
-      gap: 12,
-      marginBottom: 12
+      gap: 12
     }
   }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
     style: {
@@ -949,7 +936,11 @@ function App() {
       display: "block",
       marginBottom: 6
     }
-  }, "\uC18C\uC18D / \uBD80\uC11C"), /*#__PURE__*/React.createElement("input", {
+  }, "\uC18C\uC18D / \uBD80\uC11C ", /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: "#EF4444"
+    }
+  }, "*")), /*#__PURE__*/React.createElement("input", {
     type: "text",
     placeholder: "\uC608: \uD574\uC678\uC601\uC5C5\uBCF8\uBD80",
     value: data.department,
@@ -965,37 +956,7 @@ function App() {
       color: "#1E293B",
       fontFamily: "inherit"
     }
-  }))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
-    style: {
-      fontSize: 12,
-      fontWeight: 700,
-      color: "#475569",
-      display: "block",
-      marginBottom: 6
-    }
-  }, "\uC5F0\uB77D\uCC98 ", /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontSize: 11,
-      color: "#94A3B8",
-      fontWeight: 400
-    }
-  }, "(\uC774\uBA54\uC77C \uB610\uB294 \uD734\uB300\uD3F0 \xB7 \uC120\uD0DD)")), /*#__PURE__*/React.createElement("input", {
-    type: "text",
-    placeholder: "\uC608: hong@kaon.com / 010-0000-0000",
-    value: data.contact,
-    onChange: e => set("contact", e.target.value),
-    style: {
-      width: "100%",
-      boxSizing: "border-box",
-      border: "1.5px solid #E2E8F0",
-      borderRadius: 8,
-      padding: "10px 12px",
-      fontSize: 13,
-      outline: "none",
-      color: "#1E293B",
-      fontFamily: "inherit"
-    }
-  }))), /*#__PURE__*/React.createElement("div", {
+  })))), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 13,
       fontWeight: 800,
@@ -1016,8 +977,7 @@ function App() {
     key: s.key,
     s: s,
     checked: data[s.key],
-    onToggle: () => set(s.key, !data[s.key]),
-    count: counts ? counts[s.key] : undefined
+    onToggle: () => set(s.key, !data[s.key])
   })), /*#__PURE__*/React.createElement("div", {
     style: {
       background: "#fff",
@@ -1119,7 +1079,7 @@ function App() {
       background: canSubmit && !loading ? "#0F172A" : "#E2E8F0",
       color: canSubmit && !loading ? "#fff" : "#94A3B8"
     }
-  }, loading ? "접수 중..." : !data.name.trim() ? "이름을 입력해주세요" : selected.length === 0 ? "참석할 차시를 1개 이상 선택해주세요" : "수강 신청 접수하기 →")), /*#__PURE__*/React.createElement("div", {
+  }, btnLabel)), /*#__PURE__*/React.createElement("div", {
     style: {
       textAlign: "center",
       padding: "6px 0 4px",

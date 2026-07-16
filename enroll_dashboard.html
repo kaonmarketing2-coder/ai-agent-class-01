@@ -381,10 +381,10 @@ function labelsOf(r) {
   return sessionsOf(r).map(s => s.label).join(" · ") || "—";
 }
 function exportCSV(rows) {
-  const h = ["이름", "소속/부서", "연락처", "신청 차시", "1차시", "2차시", "3차시", "신청 차시 수", "비고", "접수일시"];
+  const h = ["이름", "소속/부서", "신청 차시", "1차시", "2차시", "3차시", "신청 차시 수", "비고", "접수일시"];
   const lines = [h.join(","), ...rows.map(r => {
     const cnt = SKEYS.filter(k => r[k]).length;
-    return [`"${(r.name || "").replace(/"/g, '""')}"`, `"${(r.department || "").replace(/"/g, '""')}"`, `"${(r.contact || "").replace(/"/g, '""')}"`, `"${labelsOf(r)}"`, r.s1 ? "O" : "", r.s2 ? "O" : "", r.s3 ? "O" : "", cnt, `"${(r.note || "").replace(/"/g, '""').replace(/\n/g, " ")}"`, `"${new Date(r.submitted_at).toLocaleString("ko-KR")}"`].join(",");
+    return [`"${(r.name || "").replace(/"/g, '""')}"`, `"${(r.department || "").replace(/"/g, '""')}"`, `"${labelsOf(r)}"`, r.s1 ? "O" : "", r.s2 ? "O" : "", r.s3 ? "O" : "", cnt, `"${(r.note || "").replace(/"/g, '""').replace(/\n/g, " ")}"`, `"${new Date(r.submitted_at).toLocaleString("ko-KR")}"`].join(",");
   })];
   const blob = new Blob(["﻿" + lines.join("\n")], {
     type: "text/csv;charset=utf-8;"
@@ -757,7 +757,7 @@ function Dashboard() {
       background: "#F8FAFC",
       borderBottom: "1px solid #E2E8F0"
     }
-  }, ["이름", "소속/부서", "연락처", "신청 차시", "비고", "접수일시", ""].map((h, i) => /*#__PURE__*/React.createElement("th", {
+  }, ["이름", "소속/부서", "신청 차시", "비고", "접수일시", ""].map((h, i) => /*#__PURE__*/React.createElement("th", {
     key: i,
     style: {
       padding: "11px 14px",
@@ -786,12 +786,6 @@ function Dashboard() {
       whiteSpace: "nowrap"
     }
   }, r.department || "—"), /*#__PURE__*/React.createElement("td", {
-    style: {
-      padding: "11px 14px",
-      color: "#475569",
-      whiteSpace: "nowrap"
-    }
-  }, r.contact || "—"), /*#__PURE__*/React.createElement("td", {
     style: {
       padding: "11px 14px"
     }

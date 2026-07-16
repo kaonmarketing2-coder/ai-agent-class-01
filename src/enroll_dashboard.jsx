@@ -25,13 +25,12 @@ function sessionsOf(r){ return SESSIONS.filter(s=>r[s.key]); }
 function labelsOf(r){ return sessionsOf(r).map(s=>s.label).join(" · ") || "—"; }
 
 function exportCSV(rows) {
-  const h = ["이름","소속/부서","연락처","신청 차시","1차시","2차시","3차시","신청 차시 수","비고","접수일시"];
+  const h = ["이름","소속/부서","신청 차시","1차시","2차시","3차시","신청 차시 수","비고","접수일시"];
   const lines = [h.join(","), ...rows.map(r=>{
     const cnt = SKEYS.filter(k=>r[k]).length;
     return [
       `"${(r.name||"").replace(/"/g,'""')}"`,
       `"${(r.department||"").replace(/"/g,'""')}"`,
-      `"${(r.contact||"").replace(/"/g,'""')}"`,
       `"${labelsOf(r)}"`,
       r.s1?"O":"", r.s2?"O":"", r.s3?"O":"",
       cnt,
@@ -146,7 +145,7 @@ function Dashboard() {
               <table style={{width:"100%",borderCollapse:"collapse",fontSize:13,minWidth:720}}>
                 <thead>
                   <tr style={{background:"#F8FAFC",borderBottom:"1px solid #E2E8F0"}}>
-                    {["이름","소속/부서","연락처","신청 차시","비고","접수일시",""].map((h,i)=>(
+                    {["이름","소속/부서","신청 차시","비고","접수일시",""].map((h,i)=>(
                       <th key={i} style={{padding:"11px 14px",textAlign:"left",fontSize:11,fontWeight:700,color:"#64748B",whiteSpace:"nowrap"}}>{h}</th>
                     ))}
                   </tr>
@@ -156,7 +155,6 @@ function Dashboard() {
                     <tr key={r.id} style={{borderBottom:"1px solid #F1F5F9"}}>
                       <td style={{padding:"11px 14px",fontWeight:700,color:"#0F172A",whiteSpace:"nowrap"}}>{r.name}</td>
                       <td style={{padding:"11px 14px",color:"#475569",whiteSpace:"nowrap"}}>{r.department||"—"}</td>
-                      <td style={{padding:"11px 14px",color:"#475569",whiteSpace:"nowrap"}}>{r.contact||"—"}</td>
                       <td style={{padding:"11px 14px"}}>
                         <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
                           {sessionsOf(r).map(s=>(
